@@ -3,16 +3,7 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
-  "functions": {
-    "api/proxy.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
-    {
-      "source": "/api/proxy",
-      "destination": "/api/proxy"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

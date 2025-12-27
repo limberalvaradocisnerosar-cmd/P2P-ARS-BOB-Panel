@@ -7,6 +7,7 @@
 
 const BINANCE_P2P_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
 
+// Vercel Serverless Function handler
 export default async function handler(req, res) {
   // SECURITY: Manejar preflight (OPTIONS) para CORS
   if (req.method === 'OPTIONS') {

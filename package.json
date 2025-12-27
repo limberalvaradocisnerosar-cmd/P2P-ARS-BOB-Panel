@@ -1,0 +1,22 @@
+{
+  "name": "p2p-ars-bob-panel",
+  "version": "1.0.0",
+  "description": "Premium fintech dashboard for ARS ↔ BOB currency conversion using Binance P2P reference prices",
+  "type": "module",
+  "engines": {
+    "node": ">=18.x"
+  },
+  "scripts": {
+    "dev": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "p2p",
+    "binance",
+    "currency",
+    "converter",
+    "fintech"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
