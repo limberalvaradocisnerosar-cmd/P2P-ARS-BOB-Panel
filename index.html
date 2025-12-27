@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Panel informativo premium para conversión de monedas ARS ↔ BOB usando precios de referencia de Binance P2P" />
+  <meta name="keywords" content="ARS, BOB, conversión, Binance P2P, USDT, fintech, dashboard" />
+  <meta name="author" content="P2P ARS ↔ BOB Panel" />
+  <title>P2P ARS ↔ BOB | Panel de Conversión Premium</title>
+
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>P2P ARS ↔ BOB</h1>
+      <p class="subtitle">Conversor de monedas con precios de referencia</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="panel-header">
+        <h2>Calculadora de Conversión</h2>
+        <button id="refresh-btn" class="refresh-btn">Actualizar Precios</button>
+      </div>
+
+      <div class="inputs">
+        <div class="input-group">
+          <label for="amount">Monto</label>
+          <input 
+            type="text" 
+            id="amount" 
+            placeholder="1.000.000,00"
+            inputmode="decimal"
+            pattern="[0-9.,]*"
+          >
+        </div>
+
+        <div class="input-group">
+          <label for="direction">Dirección</label>
+          <select id="direction">
+            <option value="ARS_BOB">ARS → BOB</option>
+            <option value="BOB_ARS">BOB → ARS</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="result">
+        <span id="result">—</span>
+      </div>
+    </section>
+
+    <section class="card info-card" id="info-card">
+      <!-- Contenido generado dinámicamente -->
+    </section>
+
+    <section class="card reference-prices-card" id="reference-prices-panel">
+      <button class="reference-prices-toggle" id="reference-prices-toggle" aria-expanded="false">
+        <span class="reference-prices-toggle-text">Precios de Referencia</span>
+        <span class="reference-prices-toggle-icon">▼</span>
+      </button>
+      <div class="reference-prices-content" id="reference-prices-content">
+        <!-- Contenido generado dinámicamente -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <small class="disclaimer">
+        <strong>Disclaimer:</strong> Este panel es únicamente para fines informativos. 
+        Los precios mostrados son referenciales basados en la mediana de los top 15 anuncios 
+        filtrados de Binance P2P y pueden no reflejar precios exactos de mercado. 
+        No se realiza trading ni automatización de órdenes. 
+        Los precios se actualizan cada 60 segundos mediante cache.
+      </small>
+    </div>
+  </footer>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

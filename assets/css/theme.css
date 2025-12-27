@@ -1,0 +1,60 @@
+/* Dark theme (default) - Premium Fintech */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.05) 0%, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(22, 163, 74, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Overrides visuales para dark theme */
+.card {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+input[type="text"]#amount,
+input[type="number"],
+select {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.result {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+/* Scrollbar styling para dark theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
+}
+
+/* Focus visible para accesibilidad */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+}
+
