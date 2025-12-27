@@ -1,6 +1,26 @@
 import { CONFIG } from './config.js';
 
-const BINANCE_P2P_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
+// SECURITY: Usar proxy de Vercel para evitar CORS
+// En desarrollo, usar localhost. En producción, usar el dominio de Vercel
+const getProxyUrl = () => {
+  if (typeof window === 'undefined') {
+    return '/api/proxy';
+  }
+  
+  // Detectar si estamos en producción (Vercel)
+  const hostname = window.location.hostname;
+  const isProduction = hostname.includes('vercel.app') || hostname.includes('vercel.com');
+  
+  if (isProduction) {
+    // En producción, usar ruta relativa (Vercel maneja el routing)
+    return '/api/proxy';
+  }
+  
+  // En desarrollo local
+  return 'http://localhost:3000/api/proxy';
+};
+
+const PROXY_URL = getProxyUrl();
 
 // Security: Guard flags
 let isUserTriggered = false;
@@ -111,7 +131,8 @@ export async function fetchPrices({ fiat, tradeType }) {
   }
   
   try {
-    const response = await fetch(BINANCE_P2P_URL, {
+    // SECURITY: Usar proxy de Vercel en lugar de llamar directamente a Binance
+    const response = await fetch(PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
