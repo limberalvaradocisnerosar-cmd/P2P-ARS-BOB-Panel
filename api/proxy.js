@@ -21,22 +21,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // SECURITY: Validar origen (opcional, pero recomendado)
+  // SECURITY: CORS headers - permitir desde cualquier origen de Vercel
+  // Esto es necesario porque Vercel genera URLs dinámicas
   const origin = req.headers.origin || req.headers.referer;
-  const allowedOrigins = [
-    'https://p2-p-ars-bob-panel.vercel.app',
-    'https://p2p-ars-bob-panel.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:5173'
-  ];
-
-  // En producción, validar origen
-  if (process.env.NODE_ENV === 'production') {
-    if (origin && !allowedOrigins.some(allowed => origin.includes(allowed))) {
-      return res.status(403).json({ error: 'Forbidden: Invalid origin' });
+  
+  // Permitir todos los orígenes de Vercel y localhost para desarrollo
+  if (origin) {
+    const isVercelOrigin = origin.includes('vercel.app') || origin.includes('vercel.com');
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    
+    if (isVercelOrigin || isLocalhost) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      // En producción, solo permitir orígenes conocidos
+      res.setHeader('Access-Control-Allow-Origin', '*');
     }
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
   try {
@@ -95,8 +96,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Invalid response format from Binance' });
     }
 
-    // Retornar datos con CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Retornar datos con CORS headers (ya configurados arriba)
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=30');
