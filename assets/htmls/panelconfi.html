@@ -1,0 +1,161 @@
+
+<div class="app-settings-header">
+  <h2 class="app-settings-title">Configuration</h2>
+  <button class="settings-close-btn" id="settings-close" type="button" aria-label="Cerrar" data-action="close-settings">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+</div>
+
+<div class="app-settings-body">
+  
+  <div class="settings-card settings-card-visible">
+    <div class="settings-card-header">
+      <div class="settings-card-title-group">
+        <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <h3 class="settings-card-title">Theme</h3>
+      </div>
+    </div>
+    <div class="settings-card-content">
+      <div class="theme-indicator-group">
+        <div class="theme-indicator">
+          <span class="theme-indicator-label">Light</span>
+          <span class="theme-indicator-value" id="theme-indicator-value">Light</span>
+        </div>
+        <div class="theme-indicator">
+          <span class="theme-indicator-label">Dark</span>
+          <span class="theme-indicator-value">Dark</span>
+        </div>
+      </div>
+      <div class="theme-switch-group">
+        <label class="theme-switch-option">
+          <input type="radio" name="theme" value="light" id="theme-light">
+          <span class="theme-switch-label">Light</span>
+        </label>
+        <label class="theme-switch-option">
+          <input type="radio" name="theme" value="dark" id="theme-dark">
+          <span class="theme-switch-label">Dark</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="settings-card settings-card-visible">
+    <div class="settings-card-header">
+      <div class="settings-card-title-group">
+        <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <h3 class="settings-card-title">Security</h3>
+      </div>
+    </div>
+    <div class="settings-card-content">
+      <div class="security-status-list">
+        <div class="security-status-item">
+          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span class="security-status-text">Manual fetch only</span>
+        </div>
+        <div class="security-status-item">
+          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span class="security-status-text">Cache-first policy</span>
+        </div>
+        <div class="security-status-item">
+          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span class="security-status-text">Rate limiting active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="settings-card settings-card-collapsable">
+    <button class="settings-card-header settings-card-toggle" id="prices-accordion-header" type="button" aria-expanded="false" aria-controls="prices-accordion-content">
+      <div class="settings-card-title-group">
+        <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        <h3 class="settings-card-title">Prices Used for Calculation</h3>
+      </div>
+      <svg class="settings-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div class="settings-card-content settings-accordion-content" id="prices-accordion-content" aria-labelledby="prices-accordion-header" style="display: none;">
+      <dl class="prices-definition-list">
+        <div id="prices-used-content">
+          <div class="prices-empty-message">Prices not loaded yet</div>
+        </div>
+      </dl>
+      <div class="prices-source-info">
+        <span class="prices-source-text">Prices derived from median of filtered P2P ads</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="settings-card settings-card-collapsable">
+    <button class="settings-card-header settings-card-toggle" id="system-accordion-header" type="button" aria-expanded="false" aria-controls="system-accordion-content">
+      <div class="settings-card-title-group">
+        <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <h3 class="settings-card-title">System Status</h3>
+      </div>
+      <svg class="settings-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div class="settings-card-content settings-accordion-content" id="system-accordion-content" aria-labelledby="system-accordion-header" style="display: none;">
+      <dl class="system-definition-list">
+        <div class="system-definition-item">
+          <dt class="system-definition-term">Cache status</dt>
+          <dd class="system-definition-desc">
+            <span class="system-status-badge" id="system-cache-status-badge">
+              <span class="badge-text" id="system-cache-status">EXPIRED</span>
+            </span>
+          </dd>
+        </div>
+        <div class="system-definition-item">
+          <dt class="system-definition-term">Cache TTL remaining</dt>
+          <dd class="system-definition-desc">
+            <span class="system-status-value" id="system-cache-ttl">—</span>
+          </dd>
+        </div>
+        <div class="system-definition-item">
+          <dt class="system-definition-term">Last API update</dt>
+          <dd class="system-definition-desc">
+            <span class="system-status-value" id="system-last-update">Never</span>
+          </dd>
+        </div>
+        <div class="system-definition-item">
+          <dt class="system-definition-term">Refresh cooldown</dt>
+          <dd class="system-definition-desc">
+            <span class="system-status-value" id="system-cooldown-status">NO</span>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</div>

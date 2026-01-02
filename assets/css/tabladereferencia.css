@@ -1,0 +1,468 @@
+
+
+.app-card-references {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  flex-shrink: 0;
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--color-border);
+  padding: 0;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.reference-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-tertiary);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  font-family: inherit;
+  margin: 0;
+}
+
+.reference-toggle-btn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-border-light);
+}
+
+.reference-toggle-btn[aria-expanded="true"] {
+  background-color: var(--color-bg-hover);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reference-toggle-text {
+  flex: 1;
+  text-align: left;
+}
+
+.reference-toggle-icon {
+  transition: transform var(--transition-base);
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.reference-toggle-btn[aria-expanded="true"] .reference-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.reference-collapsable-content {
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+}
+
+.reference-prices-header {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.reference-prices-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.reference-prices-note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  opacity: 0.8;
+}
+
+.reference-prices-content {
+  width: 100%;
+}
+
+.reference-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  text-align: center;
+  font-family: inherit;
+}
+
+.filter-btn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.filter-btn.active {
+  background-color: var(--color-accent);
+  color: var(--color-text-light);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-btn.buy-filter.active {
+  background-color: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+.filter-btn.buy-filter.active:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.filter-btn.sell-filter.active {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.filter-btn.sell-filter.active:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.reference-table-container {
+  overflow-x: auto;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+}
+
+.reference-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  background-color: var(--color-bg-primary);
+}
+
+.reference-table thead {
+  background-color: var(--color-bg-tertiary);
+}
+
+.reference-table th {
+  padding: var(--spacing-md);
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.reference-table tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.reference-table tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.reference-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.reference-table td {
+  padding: var(--spacing-md);
+  text-align: center;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.reference-table td.currency-cell {
+  font-weight: var(--font-weight-semibold);
+}
+
+.reference-table td.price-cell {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+}
+
+.reference-table td.index-cell {
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.reference-table.reference-table-buy thead {
+  border-bottom: 2px solid #16a34a;
+}
+
+.reference-table.reference-table-buy thead th {
+  color: var(--color-text-primary);
+}
+
+.reference-table.reference-table-buy thead th:last-child {
+  color: #16a34a;
+}
+
+.reference-table.reference-table-sell thead {
+  border-bottom: 2px solid #dc2626;
+}
+
+.reference-table.reference-table-sell thead th {
+  color: var(--color-text-primary);
+}
+
+.reference-table.reference-table-sell thead th:last-child {
+  color: #dc2626;
+}
+
+.reference-empty {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .app-card-references {
+    max-width: 100%;
+    margin: 0;
+    border-radius: var(--border-radius-lg);
+  }
+
+  .reference-toggle-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .reference-toggle-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .reference-collapsable-content {
+    padding: var(--spacing-sm);
+  }
+
+  .reference-prices-header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .reference-prices-title {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .reference-prices-note {
+    font-size: 0.625rem; 
+  }
+
+  .reference-filters {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filter-label {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .filter-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xs);
+    width: 100%;
+  }
+
+  .filter-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    min-height: 36px;
+  }
+
+  .reference-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius-md);
+    max-width: 100%;
+    
+    scrollbar-width: thin;
+  }
+
+  .reference-table {
+    width: 100%;
+    min-width: 0; 
+    font-size: var(--font-size-xs);
+    table-layout: auto; 
+  }
+
+  .reference-table th {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+  }
+
+  .reference-table td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+  }
+
+  .reference-table td.index-cell {
+    font-size: var(--font-size-xs);
+    width: 40px; 
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center;
+  }
+
+  .reference-table td.price-cell {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .reference-table th:first-child,
+  .reference-table td:first-child {
+    padding-left: var(--spacing-xs);
+  }
+
+  .reference-table th:last-child,
+  .reference-table td:last-child {
+    padding-right: var(--spacing-xs);
+  }
+
+  .reference-empty {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .app-card-references {
+    max-width: 100%;
+  }
+
+  .reference-filters {
+    flex-direction: row;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: calc(50% - var(--spacing-sm));
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+  }
+
+  .reference-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .reference-table th,
+  .reference-table td {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (min-width: 769px) {
+  .app-card-references {
+    max-width: 600px;
+  }
+
+  .reference-filters {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .reference-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .reference-table th,
+  .reference-table td {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .reference-filters {
+    flex-direction: row;
+    gap: var(--spacing-sm);
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .reference-table-container {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+

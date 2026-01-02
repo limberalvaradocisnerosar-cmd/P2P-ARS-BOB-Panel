@@ -1,138 +1,260 @@
-/**
- * Settings Panel & Theme Toggle
- * Maneja el panel lateral de configuración y el cambio de tema
- */
-
-// Estado del panel
 let isSettingsOpen = false;
-
-// Inicializar panel de configuración
-function initSettingsPanel() {
+function connectSettingsTrigger() {
   const trigger = document.getElementById('settings-trigger');
+  if (trigger && !trigger.dataset.listenerAttached) {
+    trigger.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await openSettingsPanel();
+    });
+    trigger.dataset.listenerAttached = 'true';
+    return true;
+  }
+  return false;
+}
+function initSettingsPanel() {
   const panel = document.getElementById('settings-panel');
-  const overlay = document.getElementById('settings-overlay');
-  const close = document.getElementById('settings-close');
-  const themeToggle = document.getElementById('theme-toggle');
-
-  if (!trigger || !panel || !overlay || !close) return;
-
-  // Abrir panel
-  trigger.addEventListener('click', () => {
-    openSettingsPanel();
-  });
-
-  // Cerrar panel
-  close.addEventListener('click', () => {
-    closeSettingsPanel();
-  });
-
-  overlay.addEventListener('click', () => {
-    closeSettingsPanel();
-  });
-
-  // Cerrar con ESC
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isSettingsOpen) {
-      closeSettingsPanel();
-    }
-  });
-
-  // Toggle de tema
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      toggleTheme();
+  if (!panel) {
+    connectSettingsTrigger();
+    return;
+  }
+  connectSettingsTrigger();
+  if (!window.settingsEscListenerAdded) {
+    window.settingsEscListenerAdded = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isSettingsOpen) {
+        closeSettingsPanel();
+      }
     });
   }
-
-  // Cargar tema guardado
+  window.addEventListener('settings-view-ready', () => {
+    setupCollapsableSections();
+  });
+  window.addEventListener('view-ready', (e) => {
+    if (e.detail?.view === 'header' || document.getElementById('settings-trigger')) {
+      connectSettingsTrigger();
+    }
+  });
   loadTheme();
+  renderSettingsState();
 }
-
-// Abrir panel
-function openSettingsPanel() {
+async function openSettingsPanel() {
   const panel = document.getElementById('settings-panel');
   const trigger = document.getElementById('settings-trigger');
-  
-  if (!panel || !trigger) return;
-
-  panel.classList.add('settings-panel-open');
+  if (!panel || !trigger) {
+    return;
+  }
+  panel.classList.add('open');
   trigger.setAttribute('aria-expanded', 'true');
   isSettingsOpen = true;
   document.body.style.overflow = 'hidden';
+  const settingsContent = document.getElementById('settings-content');
+  if (settingsContent) {
+    const content = settingsContent.innerHTML.trim();
+    const hasRealContent = content.length > 200 && content.includes('settings-close');
+    if (!hasRealContent) {
+      import('./router.js').then(({ loadSettingsView }) => {
+        loadSettingsView().then(() => {
+          reconnectSettingsListeners();
+          updateSettingsPanelState();
+        });
+      });
+    } else {
+      reconnectSettingsListeners();
+      updateSettingsPanelState();
+    }
+  }
 }
-
-// Cerrar panel
+function updateSettingsPanelState() {
+  import('./ui-state.js').then((module) => {
+    if (module.refreshPricesUsed) {
+      const pricesContent = document.getElementById('prices-accordion-content');
+      if (pricesContent && pricesContent.style.display !== 'none') {
+        module.refreshPricesUsed();
+      }
+    }
+    if (module.renderSystemStatus) {
+      const systemContent = document.getElementById('system-accordion-content');
+      if (systemContent && systemContent.style.display !== 'none') {
+        module.renderSystemStatus();
+      }
+    }
+  }).catch(err => {
+    console.warn('[Settings] Error updating panel state:', err);
+  });
+}
+function reconnectSettingsListeners() {
+  const closeBtn = document.getElementById('settings-close');
+  const overlay = document.getElementById('settings-overlay');
+  if (closeBtn) {
+    closeBtn.removeEventListener('click', handleCloseClick);
+    closeBtn.addEventListener('click', handleCloseClick);
+  }
+  if (overlay) {
+    overlay.removeEventListener('click', handleOverlayClick);
+    overlay.addEventListener('click', handleOverlayClick);
+  }
+  setupCollapsableSections();
+  window.dispatchEvent(new CustomEvent('settings-view-ready'));
+}
+function handleCloseClick(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeSettingsPanel();
+}
+function handleOverlayClick(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeSettingsPanel();
+}
+function setupCollapsableSections() {
+  if (window.accordionsConfigured) {
+    return;
+  }
+  const collapsableSections = [
+    { headerId: 'prices-accordion-header', contentId: 'prices-accordion-content' },
+    { headerId: 'system-accordion-header', contentId: 'system-accordion-content' }
+  ];
+  function closeAllSections(exceptHeaderId) {
+    collapsableSections.forEach(({ headerId, contentId }) => {
+      if (headerId !== exceptHeaderId) {
+        const header = document.getElementById(headerId);
+        const content = document.getElementById(contentId);
+        if (header && content) {
+          header.setAttribute('aria-expanded', 'false');
+          content.style.display = 'none';
+        }
+      }
+    });
+  }
+  collapsableSections.forEach(({ headerId, contentId }) => {
+    const header = document.getElementById(headerId);
+    const content = document.getElementById(contentId);
+    if (header && content && !header.dataset.accordionConfigured) {
+      header.setAttribute('aria-expanded', 'false');
+      content.style.display = 'none';
+      header.addEventListener('click', () => {
+        const isExpanded = header.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+          header.setAttribute('aria-expanded', 'false');
+          content.style.display = 'none';
+        } else {
+          closeAllSections(headerId);
+          header.setAttribute('aria-expanded', 'true');
+          content.style.display = 'block';
+          requestAnimationFrame(() => {
+            if (headerId === 'prices-accordion-header') {
+              import('./ui-state.js').then((module) => {
+                if (module.refreshPricesUsed) {
+                  module.refreshPricesUsed();
+                }
+              }).catch(err => {
+                console.warn('[Settings] Error loading ui-state:', err);
+              });
+            } else if (headerId === 'system-accordion-header') {
+              import('./ui-state.js').then((module) => {
+                if (module.renderSystemStatus) {
+                  module.renderSystemStatus();
+                }
+              }).catch(err => {
+                console.warn('[Settings] Error loading ui-state:', err);
+              });
+            }
+          });
+        }
+      });
+      header.dataset.accordionConfigured = 'true';
+    }
+  });
+  window.accordionsConfigured = true;
+}
 function closeSettingsPanel() {
   const panel = document.getElementById('settings-panel');
   const trigger = document.getElementById('settings-trigger');
-  
-  if (!panel || !trigger) return;
-
-  panel.classList.remove('settings-panel-open');
-  trigger.setAttribute('aria-expanded', 'false');
+  if (!panel) {
+    console.error('[Settings] Panel no encontrado al cerrar');
+    return;
+  }
+  panel.classList.remove('open');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'false');
+  }
   isSettingsOpen = false;
   document.body.style.overflow = '';
 }
-
-// Toggle de tema
-function toggleTheme() {
-  const html = document.documentElement;
-  const currentTheme = html.getAttribute('data-theme') || 'dark';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  
-  html.setAttribute('data-theme', newTheme);
-  localStorage.setItem('p2p-theme', newTheme);
-  
-  updateThemeToggleLabel(newTheme);
+async function toggleTheme() {
+  const { toggleTheme: toggleThemeFromModule } = await import('./theme.js');
+  toggleThemeFromModule();
 }
-
-// Cargar tema guardado
 function loadTheme() {
-  const savedTheme = localStorage.getItem('p2p-theme') || 'dark';
+  const savedTheme = localStorage.getItem('p2p-theme') || 'light';
   const html = document.documentElement;
-  
   html.setAttribute('data-theme', savedTheme);
   updateThemeToggleLabel(savedTheme);
 }
-
-// Actualizar label del toggle
 function updateThemeToggleLabel(theme) {
   const label = document.querySelector('.theme-toggle-label');
   if (label) {
     label.textContent = theme === 'dark' ? 'Oscuro' : 'Claro';
   }
 }
-
-// Actualizar estado de cache (llamado desde main.js)
+let settingsState = {
+  cacheTTL: 0,
+  lastUpdate: null,
+  cooldownRemaining: 0,
+  pricesTimestamp: null
+};
 export function updateCacheStatus(secondsRemaining, lastUpdate) {
-  const cacheStatus = document.getElementById('cache-status');
+  settingsState.cacheTTL = secondsRemaining;
+  settingsState.lastUpdate = lastUpdate;
+  renderSettingsState();
+}
+export function updateCooldownStatus(secondsRemaining) {
+  settingsState.cooldownRemaining = secondsRemaining;
+  renderSettingsState();
+}
+export function updatePricesTimestamp(timestamp) {
+  settingsState.pricesTimestamp = timestamp;
+  renderSettingsState();
+}
+function renderSettingsState() {
+  const cacheStatusText = document.getElementById('cache-status-text');
   const cacheTime = document.getElementById('cache-time');
-  const lastUpdateEl = document.getElementById('last-update');
-  
-  if (cacheStatus && cacheTime) {
-    if (secondsRemaining > 0) {
-      cacheStatus.querySelector('.cache-status-text').textContent = 'Activo';
-      cacheTime.textContent = `${secondsRemaining}s restantes`;
+  if (cacheStatusText && cacheTime) {
+    if (settingsState.cacheTTL > 0) {
+      cacheStatusText.textContent = 'Activo';
+      cacheTime.textContent = `${settingsState.cacheTTL}s restantes`;
     } else {
-      cacheStatus.querySelector('.cache-status-text').textContent = 'No disponible';
+      cacheStatusText.textContent = 'No disponible';
       cacheTime.textContent = '—';
     }
   }
-  
-  if (lastUpdateEl && lastUpdate) {
-    const date = new Date(lastUpdate);
-    lastUpdateEl.textContent = date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+  const lastUpdateEl = document.getElementById('last-update');
+  if (lastUpdateEl) {
+    if (settingsState.lastUpdate) {
+      const date = new Date(settingsState.lastUpdate);
+      lastUpdateEl.textContent = date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } else {
+      lastUpdateEl.textContent = '—';
+    }
+  }
+  const cooldownTime = document.getElementById('cooldown-time');
+  if (cooldownTime) {
+    if (settingsState.cooldownRemaining > 0) {
+      cooldownTime.textContent = `${settingsState.cooldownRemaining}s`;
+    } else {
+      cooldownTime.textContent = 'Disponible';
+    }
+  }
+  if (settingsState.pricesTimestamp) {
   }
 }
-
-// Inicializar al cargar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initSettingsPanel);
 } else {
   initSettingsPanel();
 }
-

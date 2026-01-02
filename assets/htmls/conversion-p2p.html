@@ -1,0 +1,132 @@
+
+<section 
+  class="app-card app-card-converter" 
+  id="conversion-panel" 
+  data-view="converter"
+  data-state="idle"
+  role="region"
+  aria-labelledby="converter-title"
+>
+  
+  
+  <header class="converter-header">
+    <h2 id="converter-title" class="card-title">Conversión ARS ↔ BOB</h2>
+  </header>
+
+  
+  <div class="converter-input-section">
+    <label for="amount" class="converter-input-label">Ingresá el monto</label>
+    <div class="converter-input-wrapper">
+      <input 
+        type="text" 
+        id="amount" 
+        class="converter-input-field"
+        placeholder="0,00"
+        inputmode="decimal"
+        pattern="[0-9.,]*"
+        autocomplete="off"
+        data-input="amount"
+        aria-label="Ingresá el monto"
+      >
+    </div>
+  </div>
+
+  
+  <div class="converter-currencies-row" role="group" aria-label="Selección de monedas">
+    
+    <div 
+      class="converter-currency-item converter-currency-from"
+      role="button"
+      tabindex="0"
+      aria-label="Moneda origen: ARS (Peso Argentino)"
+      data-currency="from"
+      title="ARS - Peso Argentino"
+    >
+      <div class="currency-flag" id="from-flag">
+        <img src="assets/icons/argentina.svg" alt="Argentina" class="flag-icon" id="from-flag-img" width="24" height="24">
+      </div>
+      <div class="currency-code" id="input-currency-label">ARS</div>
+    </div>
+
+    
+    <button 
+      class="converter-swap-btn" 
+      id="swap-button" 
+      type="button" 
+      aria-label="Invertir dirección de conversión"
+      data-action="swap"
+      title="Intercambiar monedas"
+    >
+      <svg class="swap-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M8 3L4 7L8 11"></path>
+        <path d="M4 7H20"></path>
+        <path d="M16 21L20 17L16 13"></path>
+        <path d="M20 17H4"></path>
+      </svg>
+    </button>
+
+    
+    <div 
+      class="converter-currency-item converter-currency-to"
+      role="status"
+      aria-label="Moneda destino: BOB (Boliviano)"
+      data-currency="to"
+      title="BOB - Boliviano"
+    >
+      <div class="currency-flag" id="to-flag">
+        <img src="assets/icons/bolivia.svg" alt="Bolivia" class="flag-icon" id="to-flag-img" width="24" height="24">
+      </div>
+      <div class="currency-code" id="output-currency-label">BOB</div>
+    </div>
+  </div>
+
+  
+  <div class="converter-result-section">
+    <label class="converter-result-label">Resultado estimado</label>
+    <div 
+      class="converter-result-field" 
+      data-state="idle"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span class="converter-result-prefix">≈</span>
+      <div 
+        class="converter-result-text" 
+        id="result" 
+        data-result="value"
+        data-empty="true"
+        aria-label="Resultado de la conversión"
+      >0,00</div>
+    </div>
+  </div>
+
+  
+  <div class="converter-price-reference" id="price-reference" style="display: none;">
+    <label class="converter-price-reference-label">Precio de referencia usado</label>
+    <div class="converter-price-reference-value" id="price-reference-value">—</div>
+  </div>
+
+  
+  <button 
+    id="refresh-btn" 
+    class="converter-submit-btn" 
+    type="button" 
+    data-action="refresh"
+    aria-label="Actualizar precios"
+  >
+    <span class="ui-button-text">Actualizar precios</span>
+    <span class="ui-button-loader" aria-hidden="true"></span>
+  </button>
+
+
+  
+  <select id="direction" class="ui-hidden" aria-hidden="true" tabindex="-1" data-select="direction">
+    <option value="ARS_BOB">ARS → BOB</option>
+    <option value="BOB_ARS">BOB → ARS</option>
+  </select>
+
+  
+  <div class="ui-badge ui-badge-currency ui-hidden" id="input-currency-badge" data-badge="currency" aria-hidden="true">ARS</div>
+
+</section>

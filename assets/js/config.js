@@ -5,4 +5,3 @@ export const CONFIG = {
     MIN_MONTH_ORDERS: 50,
     MIN_FINISH_RATE: 95
   };
-  

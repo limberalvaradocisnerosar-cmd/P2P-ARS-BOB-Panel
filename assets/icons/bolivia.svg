@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <clipPath id="clip-bolivia">
+      <circle cx="20" cy="20" r="20"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#clip-bolivia)">
+    <!-- Franja roja superior -->
+    <rect x="0" y="0" width="40" height="13.33" fill="#D52B1E"/>
+    <!-- Franja amarilla central -->
+    <rect x="0" y="13.33" width="40" height="13.33" fill="#FCD116"/>
+    <!-- Franja verde inferior -->
+    <rect x="0" y="26.66" width="40" height="13.34" fill="#007934"/>
+  </g>
+</svg>
+
+
+
