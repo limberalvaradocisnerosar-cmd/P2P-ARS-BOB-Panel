@@ -2,7 +2,7 @@ import { CONFIG } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
-import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown } from './ui.js';
+import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices } from './ui.js';
 
 // SECURITY: Development mode detection
 const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -363,6 +363,13 @@ async function calculateConversion() {
 
     const formatted = formatNumber(result, 2);
     setResult(`${formatted} ${currency}`);
+    
+    // Actualizar precios mostrados
+    if (direction === 'ARS_BOB') {
+      updateResultPrices(pricesState.ars.buy, pricesState.bob.sell, direction);
+    } else {
+      updateResultPrices(pricesState.bob.buy, pricesState.ars.sell, direction);
+    }
   } catch (error) {
     if (IS_DEV) {
       console.error('[CALC] Error calculating conversion:', error);
@@ -503,6 +510,7 @@ async function init() {
   
   setupInputListeners(calculateConversion);
   setupReferencePricesToggle();
+  setupSwapButton();
   
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) {

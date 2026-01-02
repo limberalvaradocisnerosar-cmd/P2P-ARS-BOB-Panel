@@ -200,9 +200,71 @@ function setCursorPosition(input, originalPosition, originalValue, newValue) {
   }, 0);
 }
 
+// Actualizar badge de moneda según dirección
+function updateCurrencyBadge() {
+  const direction = getDirection();
+  const badge = document.getElementById('input-currency-badge');
+  if (badge) {
+    badge.textContent = direction === 'ARS_BOB' ? 'ARS' : 'BOB';
+  }
+}
+
+// Actualizar precios mostrados en resultado
+export function updateResultPrices(priceFrom, priceTo, direction) {
+  const priceFromEl = document.getElementById('result-price-from');
+  const priceToEl = document.getElementById('result-price-to');
+  
+  if (priceFromEl && priceToEl) {
+    if (direction === 'ARS_BOB') {
+      priceFromEl.textContent = `ARS: ${formatNumber(priceFrom, 2)}`;
+      priceToEl.textContent = `BOB: ${formatNumber(priceTo, 2)}`;
+    } else {
+      priceFromEl.textContent = `BOB: ${formatNumber(priceFrom, 2)}`;
+      priceToEl.textContent = `ARS: ${formatNumber(priceTo, 2)}`;
+    }
+  }
+}
+
+// Setup botón swap
+export function setupSwapButton() {
+  const swapButton = document.getElementById('swap-button');
+  const directionSelect = document.getElementById('direction');
+  
+  if (!swapButton || !directionSelect) return;
+  
+  swapButton.addEventListener('click', () => {
+    // Animación de rotación
+    swapButton.classList.add('rotating');
+    setTimeout(() => {
+      swapButton.classList.remove('rotating');
+    }, 300);
+    
+    // Cambiar dirección
+    const currentValue = directionSelect.value;
+    directionSelect.value = currentValue === 'ARS_BOB' ? 'BOB_ARS' : 'ARS_BOB';
+    
+    // Disparar evento change para que main.js lo detecte
+    directionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    
+    // Actualizar badge
+    updateCurrencyBadge();
+  });
+}
+
 export function setupInputListeners(callback) {
   const amountInput = document.getElementById('amount');
   const directionSelect = document.getElementById('direction');
+
+  // Actualizar badge cuando cambia dirección
+  if (directionSelect) {
+    directionSelect.addEventListener('change', () => {
+      updateCurrencyBadge();
+      callback();
+    });
+  }
+
+  // Inicializar badge
+  updateCurrencyBadge();
 
   if (amountInput) {
     // Input event: formatear en tiempo real mientras el usuario escribe
@@ -338,6 +400,9 @@ let refreshCountdownInterval = null;
 
 export function setRefreshButtonLoading(loading, countdownSeconds = null) {
   const refreshBtn = document.getElementById('refresh-btn');
+  const buttonText = refreshBtn?.querySelector('.cta-button-text');
+  const cacheBadge = document.getElementById('cache-badge');
+  const cacheCountdown = document.getElementById('cache-countdown');
   
   if (!refreshBtn) {
     return;
@@ -345,19 +410,35 @@ export function setRefreshButtonLoading(loading, countdownSeconds = null) {
 
   if (loading) {
     refreshBtn.disabled = true;
+    refreshBtn.classList.add('loading');
+    
     if (countdownSeconds !== null && countdownSeconds > 0) {
-      refreshBtn.textContent = `Espera ${countdownSeconds}s`;
-      refreshBtn.classList.add('countdown');
-      refreshBtn.classList.remove('loading');
+      if (buttonText) {
+        buttonText.textContent = `Espera ${countdownSeconds}s`;
+      }
+      if (cacheCountdown) {
+        cacheCountdown.textContent = `${countdownSeconds}s`;
+      }
+      if (cacheBadge) {
+        cacheBadge.style.display = 'flex';
+      }
     } else {
-      refreshBtn.textContent = 'Actualizando...';
-      refreshBtn.classList.add('loading');
-      refreshBtn.classList.remove('countdown');
+      if (buttonText) {
+        buttonText.textContent = 'Actualizando...';
+      }
+      if (cacheBadge) {
+        cacheBadge.style.display = 'none';
+      }
     }
   } else {
     refreshBtn.disabled = false;
-    refreshBtn.textContent = 'Actualizar Precios';
-    refreshBtn.classList.remove('loading', 'countdown');
+    refreshBtn.classList.remove('loading');
+    if (buttonText) {
+      buttonText.textContent = 'Actualizar precios';
+    }
+    if (cacheBadge) {
+      cacheBadge.style.display = 'none';
+    }
   }
 }
 
@@ -651,27 +732,13 @@ function getCurrentReferencePrices() {
 
 export function setupReferencePricesToggle() {
   const toggleBtn = document.getElementById('reference-prices-toggle');
-  const referencePanel = document.getElementById('reference-prices-panel');
   
-  if (!toggleBtn || !referencePanel) {
-    console.log('Reference panel: Toggle elements not found');
+  if (!toggleBtn) {
     return;
   }
 
-  console.log('Reference panel: Toggle setup complete');
-
   toggleBtn.addEventListener('click', () => {
-    console.log('Reference panel toggle clicked');
-    const isExpanded = referencePanel.classList.contains('expanded');
-    
-    if (isExpanded) {
-      referencePanel.classList.remove('expanded');
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      console.log('Reference panel: Collapsed');
-    } else {
-      referencePanel.classList.add('expanded');
-      toggleBtn.setAttribute('aria-expanded', 'true');
-      console.log('Reference panel: Expanded');
-    }
+    const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+    toggleBtn.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
   });
 }

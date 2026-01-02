@@ -16,6 +16,7 @@ html {
 body {
   min-height: 100vh;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 img,
@@ -38,6 +39,7 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  padding: 0;
 }
 
 a {
@@ -45,21 +47,24 @@ a {
   color: inherit;
 }
 
-/* Variables CSS */
+/* Variables CSS - Tema Oscuro (Default) */
 :root {
   /* Colores base - Fintech Premium Dark */
-  --color-bg-primary: #0b1220;
+  --color-bg-primary: #0a0e1a;
   --color-bg-secondary: #111827;
   --color-bg-tertiary: #1f2937;
+  --color-bg-elevated: #1a2332;
   
-  --color-text-primary: #e5e7eb;
+  --color-text-primary: #f3f4f6;
   --color-text-secondary: #9ca3af;
   --color-text-muted: #6b7280;
+  --color-text-disabled: #4b5563;
   
-  /* Accent colors */
+  /* Accent colors - Azul frío fintech */
   --color-accent: #0ea5e9;
   --color-accent-hover: #38bdf8;
   --color-accent-active: #0284c7;
+  --color-accent-light: rgba(14, 165, 233, 0.1);
   
   /* Trading colors */
   --color-buy: #16a34a;
@@ -72,21 +77,23 @@ a {
   
   --color-success: #16a34a;
   --color-error: #dc2626;
+  --color-warning: #f59e0b;
   
   --color-border: #1f2937;
   --color-border-light: #374151;
+  --color-border-focus: rgba(14, 165, 233, 0.5);
   
-  /* Tipografía - Fintech Premium */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  /* Tipografía - Inter */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.5rem;
-  --font-size-2xl: 2rem;
-  --font-size-3xl: 2.5rem;
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1rem + 0.625vw, 1.5rem);
+  --font-size-xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --font-size-2xl: clamp(2rem, 1.7rem + 1.5vw, 3rem);
+  --font-size-3xl: clamp(2.5rem, 2rem + 2.5vw, 4rem);
   
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -101,14 +108,15 @@ a {
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
   
-  /* Bordes - Fintech Premium */
+  /* Bordes */
   --border-radius-sm: 0.5rem;
   --border-radius-md: 0.75rem;
   --border-radius-lg: 1rem;
   --border-radius-xl: 1.25rem;
   --border-radius-2xl: 1.5rem;
+  --border-radius-full: 9999px;
   
-  /* Sombras - Premium depth */
+  /* Sombras */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
@@ -116,9 +124,54 @@ a {
   --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.3);
   
   /* Transiciones */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-index */
+  --z-header: 100;
+  --z-settings: 200;
+  --z-overlay: 150;
+}
+
+/* Tema Claro */
+[data-theme="light"] {
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-elevated: #ffffff;
+  
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-disabled: #94a3b8;
+  
+  --color-accent: #0284c7;
+  --color-accent-hover: #0ea5e9;
+  --color-accent-active: #0369a1;
+  --color-accent-light: rgba(2, 132, 199, 0.1);
+  
+  --color-buy: #15803d;
+  --color-buy-hover: #16a34a;
+  --color-buy-light: rgba(21, 128, 61, 0.1);
+  
+  --color-sell: #b91c1c;
+  --color-sell-hover: #dc2626;
+  --color-sell-light: rgba(185, 28, 28, 0.1);
+  
+  --color-success: #15803d;
+  --color-error: #b91c1c;
+  --color-warning: #d97706;
+  
+  --color-border: #e2e8f0;
+  --color-border-light: #cbd5e1;
+  --color-border-focus: rgba(2, 132, 199, 0.5);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(2, 132, 199, 0.2);
 }
 
 /* Tipografía base */
@@ -128,6 +181,7 @@ body {
   font-weight: var(--font-weight-normal);
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
+  transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -157,3 +211,21 @@ small {
   color: var(--color-text-secondary);
 }
 
+/* Números tabulares para consistencia visual */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Utilidades */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

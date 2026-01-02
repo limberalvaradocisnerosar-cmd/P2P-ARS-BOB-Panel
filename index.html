@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Panel informativo premium para conversión de monedas ARS ↔ BOB usando precios de referencia de Binance P2P" />
-  <meta name="keywords" content="ARS, BOB, conversión, Binance P2P, USDT, fintech, dashboard" />
+  <meta name="description" content="Herramienta financiera profesional para conversión ARS ↔ BOB usando precios de referencia Binance P2P" />
+  <meta name="keywords" content="ARS, BOB, conversión, Binance P2P, USDT, fintech, herramienta financiera" />
   <meta name="author" content="P2P ARS ↔ BOB Panel" />
-  <title>P2P ARS ↔ BOB | Panel de Conversión Premium</title>
+  <title>P2P ARS ↔ BOB | Herramienta Financiera</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/layout.css">
@@ -14,73 +18,161 @@
   <link rel="stylesheet" href="assets/css/theme.css">
 </head>
 <body>
-  <header class="header">
-    <div class="container">
-      <h1>P2P ARS ↔ BOB</h1>
-      <p class="subtitle">Conversor de monedas con precios de referencia</p>
+  <!-- Header Mínimo -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="header-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2v4m0 12v4M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+        </svg>
+        <h1 class="header-title">P2P ARS ↔ BOB</h1>
+      </div>
+      <button class="settings-trigger" id="settings-trigger" type="button" aria-label="Configuración" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <div class="panel-header">
-        <h2>Calculadora de Conversión</h2>
-        <button id="refresh-btn" class="refresh-btn">Actualizar Precios</button>
+  <!-- Panel Lateral de Configuración -->
+  <aside class="settings-panel" id="settings-panel">
+    <div class="settings-panel-overlay" id="settings-overlay"></div>
+    <div class="settings-panel-content">
+      <div class="settings-header">
+        <h2>Configuración</h2>
+        <button class="settings-close" id="settings-close" type="button" aria-label="Cerrar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-item">
+          <label class="settings-label">Tema</label>
+          <button class="theme-toggle" id="theme-toggle" type="button">
+            <span class="theme-toggle-label">Oscuro</span>
+            <span class="theme-toggle-icon">🌓</span>
+          </button>
+        </div>
+        <div class="settings-item">
+          <label class="settings-label">Estado del Cache</label>
+          <div class="cache-status" id="cache-status">
+            <span class="cache-status-text">No disponible</span>
+            <span class="cache-status-time" id="cache-time">—</span>
+          </div>
+        </div>
+        <div class="settings-item">
+          <label class="settings-label">Última Actualización</label>
+          <div class="last-update" id="last-update">—</div>
+        </div>
+        <div class="settings-item">
+          <label class="settings-label">Versión</label>
+          <div class="app-version">1.0.0</div>
+        </div>
+        <div class="settings-item">
+          <div class="security-indicator">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M9 12l2 2 4-4"></path>
+            </svg>
+            <span>Seguridad activa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="app-main">
+    <!-- Panel de Conversión (CUADRADO 1:1) -->
+    <section class="conversion-panel" id="conversion-panel">
+      <!-- Título del Panel -->
+      <div class="panel-title">
+        <h2>Conversión P2P</h2>
+        <p class="panel-subtitle">Binance · Mediana</p>
       </div>
 
-      <div class="inputs">
-        <div class="input-group">
-          <label for="amount">Monto</label>
+      <!-- Input Monetario -->
+      <div class="input-monetary-wrapper">
+        <div class="input-monetary-container">
           <input 
             type="text" 
             id="amount" 
-            placeholder="1.000.000,00"
+            class="input-monetary"
+            placeholder="0,00"
             inputmode="decimal"
             pattern="[0-9.,]*"
+            autocomplete="off"
           >
+          <div class="input-currency-badge" id="input-currency-badge">ARS</div>
         </div>
-
-        <div class="input-group">
-          <label for="direction">Dirección</label>
-          <select id="direction">
-            <option value="ARS_BOB">ARS → BOB</option>
-            <option value="BOB_ARS">BOB → ARS</option>
-          </select>
+        <div class="input-hint">
+          <span>Máximo: 1.000.000.000.000</span>
         </div>
       </div>
 
-      <div class="result">
-        <span id="result">—</span>
+      <!-- Botón Swap -->
+      <div class="swap-container">
+        <button class="swap-button" id="swap-button" type="button" aria-label="Invertir monedas">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Selector de Dirección (Oculto visualmente, mantenido para JS) -->
+      <select id="direction" class="direction-select-hidden" aria-hidden="true" tabindex="-1">
+        <option value="ARS_BOB">ARS → BOB</option>
+        <option value="BOB_ARS">BOB → ARS</option>
+      </select>
+
+      <!-- Resultado -->
+      <div class="result-container">
+        <div class="result-value" id="result">—</div>
+        <div class="result-prices" id="result-prices">
+          <span class="result-price-item" id="result-price-from">—</span>
+          <span class="result-price-separator">·</span>
+          <span class="result-price-item" id="result-price-to">—</span>
+        </div>
+      </div>
+
+      <!-- Botón CTA -->
+      <div class="cta-container">
+        <button id="refresh-btn" class="cta-button" type="button">
+          <span class="cta-button-text">Actualizar precios</span>
+          <span class="cta-button-loader" aria-hidden="true"></span>
+        </button>
+        <div class="cache-badge" id="cache-badge">
+          <span class="cache-badge-text">Cache activo</span>
+          <span class="cache-badge-time" id="cache-countdown">—</span>
+        </div>
       </div>
     </section>
 
-    <section class="card info-card" id="info-card">
-      <!-- Contenido generado dinámicamente -->
-    </section>
-
-    <section class="card reference-prices-card" id="reference-prices-panel">
-      <button class="reference-prices-toggle" id="reference-prices-toggle" aria-expanded="false">
-        <span class="reference-prices-toggle-text">Precios de Referencia</span>
-        <span class="reference-prices-toggle-icon">▼</span>
+    <!-- Referencias de Precios (Colapsable) -->
+    <section class="references-section" id="reference-prices-panel">
+      <button class="references-toggle" id="reference-prices-toggle" type="button" aria-expanded="false">
+        <span class="references-toggle-text">▸ Ver precios de referencia</span>
+        <svg class="references-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
       </button>
-      <div class="reference-prices-content" id="reference-prices-content">
+      <div class="references-content" id="reference-prices-content">
         <!-- Contenido generado dinámicamente -->
       </div>
     </section>
+
+    <!-- Info Card (Oculta visualmente, mantenida para JS) -->
+    <section class="info-card-hidden" id="info-card" aria-hidden="true">
+      <!-- Contenido generado dinámicamente -->
+    </section>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <small class="disclaimer">
-        <strong>Disclaimer:</strong> Este panel es únicamente para fines informativos. 
-        Los precios mostrados son referenciales basados en la mediana de los top 15 anuncios 
-        filtrados de Binance P2P y pueden no reflejar precios exactos de mercado. 
-        No se realiza trading ni automatización de órdenes. 
-        Los precios se actualizan cada 60 segundos mediante cache.
-      </small>
-    </div>
-  </footer>
-
   <script type="module" src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/settings.js"></script>
 </body>
 </html>
