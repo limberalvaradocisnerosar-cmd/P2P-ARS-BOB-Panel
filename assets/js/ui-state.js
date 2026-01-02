@@ -75,8 +75,8 @@ function formatNumber(value, decimals = 2) {
   }).format(value);
 }
 function formatFullDate(date) {
-  if (!date) return 'Never';
-  return date.toLocaleString('en-US', {
+  if (!date) return 'Nunca';
+  return date.toLocaleString('es-ES', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -94,7 +94,7 @@ function renderPricesUsed() {
   }
   const prices = window.getPricesState ? window.getPricesState() : null;
   if (!prices || !prices.ars.buy || !prices.ars.sell || !prices.bob.buy || !prices.bob.sell) {
-    pricesContent.innerHTML = '<div class="prices-empty-message">Prices not loaded yet</div>';
+    pricesContent.innerHTML = '<div class="prices-empty-message">Los precios aún no se han cargado</div>';
     return;
   }
   pricesContent.innerHTML = `
@@ -124,10 +124,10 @@ function renderSystemStatusInternal() {
   const systemCacheStatus = document.getElementById('system-cache-status');
   if (systemCacheStatusBadge && systemCacheStatus) {
     if (stateData.cacheActive) {
-      systemCacheStatus.textContent = 'ACTIVE';
+      systemCacheStatus.textContent = 'ACTIVO';
       systemCacheStatusBadge.className = 'system-status-badge badge-success';
     } else {
-      systemCacheStatus.textContent = 'EXPIRED';
+      systemCacheStatus.textContent = 'EXPIRADO';
       systemCacheStatusBadge.className = 'system-status-badge badge-inactive';
     }
   }
@@ -144,31 +144,31 @@ function renderSystemStatusInternal() {
     if (stateData.lastUpdate) {
       systemLastUpdate.textContent = formatRelativeTime(stateData.lastUpdate);
     } else {
-      systemLastUpdate.textContent = 'Never';
+      systemLastUpdate.textContent = 'Nunca';
     }
   }
   const systemCooldownStatus = document.getElementById('system-cooldown-status');
   if (systemCooldownStatus) {
     const cooldownActive = stateData.cooldownRemaining > 0;
-    systemCooldownStatus.textContent = cooldownActive ? 'YES' : 'NO';
+    systemCooldownStatus.textContent = cooldownActive ? 'SÍ' : 'NO';
   }
 }
 export function renderSystemStatus() {
   renderSystemStatusInternal();
 }
 function formatRelativeTime(date) {
-  if (!date) return 'Never';
+  if (!date) return 'Nunca';
   const now = new Date();
   const diffMs = now - date;
   const diffSec = Math.floor(diffMs / 1000);
   if (diffSec < 60) {
-    return `${diffSec}s ago`;
+    return `hace ${diffSec}s`;
   } else if (diffSec < 3600) {
     const minutes = Math.floor(diffSec / 60);
-    return `${minutes}min ago`;
+    return `hace ${minutes}min`;
   } else if (diffSec < 86400) {
     const hours = Math.floor(diffSec / 3600);
-    return `${hours}h ago`;
+    return `hace ${hours}h`;
   } else {
     return formatFullDate(date);
   }
@@ -184,7 +184,10 @@ function renderSettingsPanelLazy() {
       renderSystemStatusInternal();
     }
   } catch (error) {
-    console.warn('[UI-State] Error en renderSettingsPanelLazy:', error);
+    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (IS_DEV) {
+      console.warn('[UI-State] Error en renderSettingsPanelLazy:', error);
+    }
   }
 }
 function renderSettingsPanel() {
@@ -199,7 +202,10 @@ function renderState() {
     if (typeof renderSettingsPanelLazy === 'function') {
       renderSettingsPanelLazy();
     } else {
-      console.warn('[UI-State] renderSettingsPanelLazy no está definida');
+      const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (IS_DEV) {
+        console.warn('[UI-State] renderSettingsPanelLazy no está definida');
+      }
     }
   }
 }

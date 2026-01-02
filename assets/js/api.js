@@ -56,7 +56,10 @@ export async function fetchPrices({ fiat, tradeType }) {
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       throw new Error('Fetch not allowed');
     } else {
-      console.warn('[SECURITY] Fetch blocked: Not user triggered');
+      const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (IS_DEV) {
+        console.warn('[SECURITY] Fetch blocked: Not user triggered');
+      }
       throw new Error('Fetch not allowed');
     }
   }
@@ -115,7 +118,8 @@ export async function fetchPrices({ fiat, tradeType }) {
     }
     return ads;
   } catch (error) {
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (IS_DEV) {
       console.error('[API] Error fetching prices:', error);
     }
     throw error;

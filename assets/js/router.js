@@ -12,9 +12,12 @@ function getViewFromHash() {
   const hash = window.location.hash.slice(1) || '/';
   return ROUTES[hash] || 'converter';
 }
+const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 export function navigateTo(route) {
   if (!ROUTES[route]) {
-    console.warn(`[Router] Ruta desconocida: ${route}`);
+    if (IS_DEV) {
+      console.warn(`[Router] Ruta desconocida: ${route}`);
+    }
     return;
   }
   window.location.hash = route;
@@ -23,7 +26,9 @@ async function loadMainView() {
   if (!APP_CONTAINER) {
     APP_CONTAINER = document.getElementById('app-view-container');
     if (!APP_CONTAINER) {
-      console.error('[Router] app-view-container not found');
+      if (IS_DEV) {
+        console.error('[Router] app-view-container not found');
+      }
       return;
     }
   }
@@ -48,7 +53,7 @@ async function loadMainView() {
     const amountElFallback = amountEl || document.getElementById('amount');
     const refreshBtnFallback = refreshBtn || document.getElementById('refresh-btn');
     const panelFallback = panelAfterWait || document.getElementById('conversion-panel');
-    if (amountElFallback && refreshBtnFallback && panelFallback) {
+    if (panelFallback) {
       const existingReferences = APP_CONTAINER.querySelector('#reference-prices-panel');
       if (!existingReferences) {
         await loadHTML('assets/htmls/preciosdereferencia.html', APP_CONTAINER, true);
@@ -63,16 +68,32 @@ async function loadMainView() {
       window.dispatchEvent(new CustomEvent('view-loaded', { 
         detail: { view: 'converter' } 
       }));
+      setTimeout(() => {
+        const retryRefreshBtn = document.getElementById('refresh-btn');
+        if (retryRefreshBtn && !retryRefreshBtn.dataset.listenerAttached) {
+          retryRefreshBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.refreshPrices) {
+              window.refreshPrices();
+            }
+          });
+          retryRefreshBtn.dataset.listenerAttached = 'true';
+        }
+      }, 100);
     } else {
-      console.error('[Router] Critical elements not found in converter panel', {
-        amount: !!amountElFallback,
-        refresh: !!refreshBtnFallback,
-        panel: !!panelFallback,
-        containerHTML: APP_CONTAINER.innerHTML.substring(0, 200)
-      });
+      if (IS_DEV) {
+        console.error('[Router] Critical elements not found in converter panel', {
+          amount: !!amountElFallback,
+          refresh: !!refreshBtnFallback,
+          panel: !!panelFallback,
+          containerHTML: APP_CONTAINER.innerHTML.substring(0, 200)
+        });
+      }
     }
   } else {
-    console.error('[Router] Failed to load converter.html');
+    if (IS_DEV) {
+      console.error('[Router] Failed to load converter.html');
+    }
   }
 }
 async function loadReferencesView() {
@@ -92,7 +113,9 @@ async function loadStatusView() {
   }
   if (APP_CONTAINER) {
     APP_CONTAINER.innerHTML = '';
-    console.warn('[Router] Status view no disponible');
+    if (IS_DEV) {
+      console.warn('[Router] Status view no disponible');
+    }
   }
 }
 export async function loadSettingsView() {
@@ -108,11 +131,15 @@ export async function loadSettingsView() {
       window.dispatchEvent(new CustomEvent('settings-view-ready'));
       return true;
     } else {
-      console.error('[Router] Failed to load settings.html');
+      if (IS_DEV) {
+        console.error('[Router] Failed to load settings.html');
+      }
       return false;
     }
   } else {
-    console.error('[Router] SETTINGS_CONTAINER not found');
+    if (IS_DEV) {
+      console.error('[Router] SETTINGS_CONTAINER not found');
+    }
     return false;
   }
 }

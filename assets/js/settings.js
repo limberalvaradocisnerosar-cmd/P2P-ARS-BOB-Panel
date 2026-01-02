@@ -13,12 +13,12 @@ function connectSettingsTrigger() {
   return false;
 }
 function initSettingsPanel() {
+  connectSettingsTrigger();
   const panel = document.getElementById('settings-panel');
   if (!panel) {
-    connectSettingsTrigger();
+    setTimeout(connectSettingsTrigger, 100);
     return;
   }
-  connectSettingsTrigger();
   if (!window.settingsEscListenerAdded) {
     window.settingsEscListenerAdded = true;
     document.addEventListener('keydown', (e) => {
@@ -80,7 +80,10 @@ function updateSettingsPanelState() {
       }
     }
   }).catch(err => {
-    console.warn('[Settings] Error updating panel state:', err);
+    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (IS_DEV) {
+      console.warn('[Settings] Error updating panel state:', err);
+    }
   });
 }
 function reconnectSettingsListeners() {
@@ -149,7 +152,10 @@ function setupCollapsableSections() {
                   module.refreshPricesUsed();
                 }
               }).catch(err => {
-                console.warn('[Settings] Error loading ui-state:', err);
+                const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                if (IS_DEV) {
+                  console.warn('[Settings] Error loading ui-state:', err);
+                }
               });
             } else if (headerId === 'system-accordion-header') {
               import('./ui-state.js').then((module) => {
@@ -157,7 +163,10 @@ function setupCollapsableSections() {
                   module.renderSystemStatus();
                 }
               }).catch(err => {
-                console.warn('[Settings] Error loading ui-state:', err);
+                const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                if (IS_DEV) {
+                  console.warn('[Settings] Error loading ui-state:', err);
+                }
               });
             }
           });
@@ -172,7 +181,10 @@ function closeSettingsPanel() {
   const panel = document.getElementById('settings-panel');
   const trigger = document.getElementById('settings-trigger');
   if (!panel) {
-    console.error('[Settings] Panel no encontrado al cerrar');
+    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (IS_DEV) {
+      console.error('[Settings] Panel no encontrado al cerrar');
+    }
     return;
   }
   panel.classList.remove('open');

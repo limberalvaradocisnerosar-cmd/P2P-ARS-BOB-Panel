@@ -1,6 +1,6 @@
 
 <div class="app-settings-header">
-  <h2 class="app-settings-title">Configuration</h2>
+  <h2 class="app-settings-title">Configuración</h2>
   <button class="settings-close-btn" id="settings-close" type="button" aria-label="Cerrar" data-action="close-settings">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -25,28 +25,28 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
-        <h3 class="settings-card-title">Theme</h3>
+        <h3 class="settings-card-title">Tema</h3>
       </div>
     </div>
     <div class="settings-card-content">
       <div class="theme-indicator-group">
         <div class="theme-indicator">
-          <span class="theme-indicator-label">Light</span>
-          <span class="theme-indicator-value" id="theme-indicator-value">Light</span>
+          <span class="theme-indicator-label">Claro</span>
+          <span class="theme-indicator-value" id="theme-indicator-value">Claro</span>
         </div>
         <div class="theme-indicator">
-          <span class="theme-indicator-label">Dark</span>
-          <span class="theme-indicator-value">Dark</span>
+          <span class="theme-indicator-label">Oscuro</span>
+          <span class="theme-indicator-value">Oscuro</span>
         </div>
       </div>
       <div class="theme-switch-group">
         <label class="theme-switch-option">
           <input type="radio" name="theme" value="light" id="theme-light">
-          <span class="theme-switch-label">Light</span>
+          <span class="theme-switch-label">Claro</span>
         </label>
         <label class="theme-switch-option">
           <input type="radio" name="theme" value="dark" id="theme-dark">
-          <span class="theme-switch-label">Dark</span>
+          <span class="theme-switch-label">Oscuro</span>
         </label>
       </div>
     </div>
@@ -60,7 +60,7 @@
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        <h3 class="settings-card-title">Security</h3>
+        <h3 class="settings-card-title">Seguridad</h3>
       </div>
     </div>
     <div class="settings-card-content">
@@ -69,19 +69,19 @@
           <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M20 6L9 17l-5-5"></path>
           </svg>
-          <span class="security-status-text">Manual fetch only</span>
+          <span class="security-status-text">Solo actualización manual</span>
         </div>
         <div class="security-status-item">
           <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M20 6L9 17l-5-5"></path>
           </svg>
-          <span class="security-status-text">Cache-first policy</span>
+          <span class="security-status-text">Política cache primero</span>
         </div>
         <div class="security-status-item">
           <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M20 6L9 17l-5-5"></path>
           </svg>
-          <span class="security-status-text">Rate limiting active</span>
+          <span class="security-status-text">Límite de tasa activo</span>
         </div>
       </div>
     </div>
@@ -95,7 +95,7 @@
           <line x1="12" y1="1" x2="12" y2="23"></line>
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
         </svg>
-        <h3 class="settings-card-title">Prices Used for Calculation</h3>
+        <h3 class="settings-card-title">Precios usados para el cálculo</h3>
       </div>
       <svg class="settings-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <polyline points="6 9 12 15 18 9"></polyline>
@@ -104,11 +104,11 @@
     <div class="settings-card-content settings-accordion-content" id="prices-accordion-content" aria-labelledby="prices-accordion-header" style="display: none;">
       <dl class="prices-definition-list">
         <div id="prices-used-content">
-          <div class="prices-empty-message">Prices not loaded yet</div>
+          <div class="prices-empty-message">Los precios aún no se han cargado</div>
         </div>
       </dl>
       <div class="prices-source-info">
-        <span class="prices-source-text">Prices derived from median of filtered P2P ads</span>
+        <span class="prices-source-text">Precios derivados de la mediana de anuncios P2P filtrados</span>
       </div>
     </div>
   </div>
@@ -121,7 +121,7 @@
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-        <h3 class="settings-card-title">System Status</h3>
+        <h3 class="settings-card-title">Estado del sistema</h3>
       </div>
       <svg class="settings-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <polyline points="6 9 12 15 18 9"></polyline>
@@ -130,27 +130,27 @@
     <div class="settings-card-content settings-accordion-content" id="system-accordion-content" aria-labelledby="system-accordion-header" style="display: none;">
       <dl class="system-definition-list">
         <div class="system-definition-item">
-          <dt class="system-definition-term">Cache status</dt>
+          <dt class="system-definition-term">Estado del cache</dt>
           <dd class="system-definition-desc">
             <span class="system-status-badge" id="system-cache-status-badge">
-              <span class="badge-text" id="system-cache-status">EXPIRED</span>
+              <span class="badge-text" id="system-cache-status">EXPIRADO</span>
             </span>
           </dd>
         </div>
         <div class="system-definition-item">
-          <dt class="system-definition-term">Cache TTL remaining</dt>
+          <dt class="system-definition-term">TTL del cache restante</dt>
           <dd class="system-definition-desc">
             <span class="system-status-value" id="system-cache-ttl">—</span>
           </dd>
         </div>
         <div class="system-definition-item">
-          <dt class="system-definition-term">Last API update</dt>
+          <dt class="system-definition-term">Última actualización API</dt>
           <dd class="system-definition-desc">
-            <span class="system-status-value" id="system-last-update">Never</span>
+            <span class="system-status-value" id="system-last-update">Nunca</span>
           </dd>
         </div>
         <div class="system-definition-item">
-          <dt class="system-definition-term">Refresh cooldown</dt>
+          <dt class="system-definition-term">Cooldown de actualización</dt>
           <dd class="system-definition-desc">
             <span class="system-status-value" id="system-cooldown-status">NO</span>
           </dd>

@@ -320,7 +320,7 @@ async function calculateConversion() {
     setLoading(false);
   }
 }
-async function refreshPrices() {
+export async function refreshPrices() {
   if (IS_DEV) {
     console.log('[SECURITY] Refresh clicked by user');
   }
@@ -471,14 +471,29 @@ async function init() {
   }
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) {
-    refreshBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      refreshPrices();
-    });
+    if (!refreshBtn.dataset.listenerAttached) {
+      refreshBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        refreshPrices();
+      });
+      refreshBtn.dataset.listenerAttached = 'true';
+    }
+  } else {
+    setTimeout(() => {
+      const retryBtn = document.getElementById('refresh-btn');
+      if (retryBtn && !retryBtn.dataset.listenerAttached) {
+        retryBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          refreshPrices();
+        });
+        retryBtn.dataset.listenerAttached = 'true';
+      }
+    }, 200);
   }
-  hideReferenceTable();
-  hidePriceReference();
   await loadPrices(false);
+  if (!window.currentReferencePrices) {
+    hidePriceReference();
+  }
   const initialAmount = getAmount();
   if (
     initialAmount > 0 &&
@@ -502,3 +517,4 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+window.refreshPrices = refreshPrices;

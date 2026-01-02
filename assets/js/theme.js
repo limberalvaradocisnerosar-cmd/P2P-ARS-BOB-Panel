@@ -25,7 +25,7 @@ function applyTheme(theme) {
 function updateThemeIndicator(theme) {
   const indicatorValue = document.getElementById('theme-indicator-value');
   if (indicatorValue) {
-    indicatorValue.textContent = theme === 'dark' ? 'Dark' : 'Light';
+    indicatorValue.textContent = theme === 'dark' ? 'Oscuro' : 'Claro';
   }
 }
 function updateThemeLabel(theme) {

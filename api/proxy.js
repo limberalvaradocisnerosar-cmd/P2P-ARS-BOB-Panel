@@ -82,6 +82,10 @@ export default async function handler(req, res) {
 
     return res.status(200).json(data);
   } catch (error) {
+    const isProduction = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+    if (!isProduction) {
+      console.error('[Proxy] Error:', error);
+    }
     return res.status(500).json({ 
       error: 'Internal server error'
     });
