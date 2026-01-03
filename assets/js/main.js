@@ -2,7 +2,7 @@ import { CONFIG } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
-import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState } from './ui.js';
+import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState, showSuccessToast } from './ui.js';
 import { updateCacheState, updateCooldownState, updatePricesTimestamp, refreshPricesUsed } from './ui-state.js';
 const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 let pricesState = {
@@ -354,6 +354,7 @@ export async function refreshPrices() {
     if (IS_DEV) {
       console.log('[FETCH] Prices updated successfully');
     }
+    showSuccessToast('¡Ya puedes convertir!');
     renderAllUI();
     refreshPricesUsed();
     const direction = getDirection();

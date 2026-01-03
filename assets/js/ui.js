@@ -661,6 +661,18 @@ export function setupReferenceFilters() {
 export function getCurrentReferencePrices() {
   return window.currentReferencePrices || null;
 }
+export function showSuccessToast(message) {
+  const toast = document.getElementById('toast-notification');
+  const toastMessage = document.getElementById('toast-message');
+  if (!toast || !toastMessage) {
+    return;
+  }
+  toastMessage.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
 export function setupReferencePricesToggle() {
   const toggleBtn = document.getElementById('reference-toggle-btn');
   if (toggleBtn) {
