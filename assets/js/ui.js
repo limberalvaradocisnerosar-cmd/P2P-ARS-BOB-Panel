@@ -1,5 +1,6 @@
 import { formatNumber, calculateSpread, calculatePercentageDiff, median } from './calc.js';
 import { log, warn } from './logger.js';
+import { COOLDOWN_MS, getRemainingCooldown, saveLastFetchTimestamp, hasConsent, setConsent } from './config.js';
 function setPanelState(state) {
   const panel = document.getElementById('conversion-panel');
   if (panel) {
@@ -325,7 +326,6 @@ export function setupInputListeners(callback) {
     directionSelect.addEventListener('change', callback);
   }
 }
-let refreshCountdownInterval = null;
 export function setRefreshButtonLoading(loading, countdownSeconds = null) {
   const refreshBtn = document.getElementById('refresh-btn');
   const buttonText = refreshBtn?.querySelector('.ui-button-text');
@@ -378,34 +378,95 @@ export function setRefreshButtonSuccess() {
     buttonText.textContent = 'Actualizado';
   }
 }
-export function startRefreshCountdown(seconds, onComplete) {
-  if (refreshCountdownInterval) {
-    clearInterval(refreshCountdownInterval);
+
+let cooldownInterval = null;
+
+export function showConsentModal() {
+  const overlay = document.getElementById('consent-modal-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('ui-hidden');
+  overlay.classList.add('show');
+  document.body.classList.add('body-no-scroll');
+  
+  const acceptBtn = document.getElementById('consent-accept-btn');
+  const cancelBtn = document.getElementById('consent-cancel-btn');
+  
+  function closeModal() {
+    overlay.classList.remove('show');
+    requestAnimationFrame(() => {
+      overlay.classList.add('ui-hidden');
+      document.body.classList.remove('body-no-scroll');
+    });
   }
-  let remaining = seconds;
+  
+  function handleAccept() {
+    setConsent();
+    closeModal();
+    if (window.pendingRefreshAction) {
+      window.pendingRefreshAction();
+      window.pendingRefreshAction = null;
+    }
+  }
+  
+  function handleCancel() {
+    closeModal();
+    window.pendingRefreshAction = null;
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('cursor-not-allowed');
+      refreshBtn.classList.add('cursor-pointer');
+    }
+  }
+  
+  if (acceptBtn) {
+    acceptBtn.onclick = handleAccept;
+  }
+  if (cancelBtn) {
+    cancelBtn.onclick = handleCancel;
+  }
+  
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      handleCancel();
+    }
+  };
+}
+
+export function updateCountdownUI(remainingMs) {
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
+  const pricesState = window.getPricesState?.();
+  if (pricesState?.timestamp) {
+    updateCacheStatusBadge(remainingSeconds, pricesState.timestamp);
+  }
+}
+
+export function startCooldownTimer(durationMs) {
+  if (cooldownInterval) {
+    clearInterval(cooldownInterval);
+  }
+  
+  let remaining = durationMs;
+  updateCountdownUI(remaining);
+  
   const refreshBtn = document.getElementById('refresh-btn');
   const buttonText = refreshBtn?.querySelector('.ui-button-text');
   if (refreshBtn) {
     refreshBtn.disabled = true;
-    refreshBtn.classList.add('cursor-not-allowed');
+    refreshBtn.classList.add('cursor-not-allowed', 'success');
     refreshBtn.classList.remove('cursor-pointer');
     if (buttonText) {
       buttonText.textContent = 'Actualizado';
     }
   }
-  refreshCountdownInterval = setInterval(() => {
-    remaining--;
-    if (remaining > 0) {
-      const pricesState = window.getPricesState?.();
-      if (pricesState?.timestamp) {
-        const cacheAge = Date.now() - pricesState.timestamp.getTime();
-        const cacheTTL = 60000;
-        const remainingSeconds = Math.max(0, Math.floor((cacheTTL - cacheAge) / 1000));
-        updateCacheStatusBadge(remainingSeconds, pricesState.timestamp);
-      }
-    } else {
-      clearInterval(refreshCountdownInterval);
-      refreshCountdownInterval = null;
+  
+  cooldownInterval = setInterval(() => {
+    remaining -= 1000;
+    updateCountdownUI(remaining);
+    
+    if (remaining <= 0) {
+      clearInterval(cooldownInterval);
+      cooldownInterval = null;
       if (refreshBtn) {
         refreshBtn.disabled = false;
         refreshBtn.classList.add('cursor-pointer');
@@ -415,19 +476,15 @@ export function startRefreshCountdown(seconds, onComplete) {
         }
       }
       setRefreshButtonLoading(false);
-      clearCooldownTimestamp();
-      if (onComplete) {
-        onComplete();
-      }
     }
   }, 1000);
 }
-export function stopRefreshCountdown() {
-  if (refreshCountdownInterval) {
-    clearInterval(refreshCountdownInterval);
-    refreshCountdownInterval = null;
+
+export function stopCooldownTimer() {
+  if (cooldownInterval) {
+    clearInterval(cooldownInterval);
+    cooldownInterval = null;
   }
-  setRefreshButtonLoading(false);
 }
 
 let cacheBadgeUpdateInterval = null;

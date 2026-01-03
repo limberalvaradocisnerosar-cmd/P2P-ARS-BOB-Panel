@@ -1,8 +1,8 @@
-import { CONFIG, saveCooldownTimestamp, getCooldownRemaining, clearCooldownTimestamp, saveLastRefreshTimestamp } from './config.js';
+import { CONFIG, COOLDOWN_MS, getRemainingCooldown, saveLastFetchTimestamp, hasConsent, setConsent } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
-import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, setRefreshButtonSuccess, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState, showSuccessToast, updateCacheStatusBadge, startCacheBadgeUpdates, stopCacheBadgeUpdates } from './ui.js';
+import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, setRefreshButtonSuccess, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState, showSuccessToast, updateCacheStatusBadge, startCacheBadgeUpdates, stopCacheBadgeUpdates, showConsentModal, startCooldownTimer, stopCooldownTimer, updateCountdownUI } from './ui.js';
 import { updateCacheState, updateCooldownState, updatePricesTimestamp, refreshPricesUsed } from './ui-state.js';
 import { log, warn, error } from './logger.js';
 let pricesState = {
@@ -227,26 +227,11 @@ async function loadPrices(forceRefresh = false) {
     warn('[SECURITY] loadPrices called with forceRefresh=true - this should not happen');
     return;
   }
-  const cooldownRemaining = getCooldownRemaining();
+  const cooldownRemaining = getRemainingCooldown();
   if (cooldownRemaining > 0) {
-    log('[SECURITY] Cooldown active from previous session:', cooldownRemaining, 'seconds');
+    log('[SECURITY] Cooldown active from previous session:', Math.ceil(cooldownRemaining / 1000), 'seconds');
     isCooldown = true;
-    const refreshBtn = document.getElementById('refresh-btn');
-    const buttonText = refreshBtn?.querySelector('.ui-button-text');
-    if (refreshBtn) {
-      refreshBtn.disabled = true;
-      refreshBtn.classList.add('cursor-not-allowed', 'success');
-      refreshBtn.classList.remove('cursor-pointer');
-      if (buttonText) {
-        buttonText.textContent = 'Actualizado';
-      }
-    }
-    startRefreshCountdown(cooldownRemaining, () => {
-      log('[SECURITY] Cooldown completed, button unlocked');
-      isCooldown = false;
-      updateCooldownState(0);
-      clearCooldownTimestamp();
-    });
+    startCooldownTimer(cooldownRemaining);
   }
     const loadedFromCache = loadPricesStateFromCache();
     if (loadedFromCache) {
@@ -263,15 +248,6 @@ async function loadPrices(forceRefresh = false) {
         updatePricesTimestamp(pricesState.timestamp.getTime());
         if (remaining > 0) {
           startCacheBadgeUpdates();
-          const countdownSeconds = remaining;
-          if (countdownSeconds > 0 && countdownSeconds < 60) {
-            isCooldown = true;
-            startRefreshCountdown(countdownSeconds, () => {
-              log('[SECURITY] Cooldown completed, button unlocked');
-              isCooldown = false;
-              updateCooldownState(0);
-            });
-          }
         }
       } else {
         updateCacheStatusBadge(null, null);
@@ -345,16 +321,21 @@ async function calculateConversion() {
     setLoading(false);
   }
 }
-export async function refreshPrices() {
-  log('[SECURITY] Refresh clicked by user');
+async function attemptRefresh() {
+  const remaining = getRemainingCooldown();
+  
+  if (remaining > 0) {
+    log('[SECURITY] Cooldown active, blocking refresh');
+    startCooldownTimer(remaining);
+    isCooldown = true;
+    return;
+  }
+  
   if (isRefreshing) {
     warn('[SECURITY] Refresh already in progress, ignoring click');
     return;
   }
-  if (isCooldown) {
-    warn('[SECURITY] Cooldown active, ignoring click');
-    return;
-  }
+  
   enableFetchForUserAction();
   isRefreshing = true;
   const refreshBtn = document.getElementById('refresh-btn');
@@ -364,6 +345,7 @@ export async function refreshPrices() {
     refreshBtn.classList.remove('cursor-pointer');
   }
   setRefreshButtonLoading(true, null);
+  
   try {
     hideReferenceTable();
     resetReferenceTableUIState();
@@ -376,6 +358,8 @@ export async function refreshPrices() {
     log('[FETCH] Fetching prices from Binance P2P');
     await fetchAllPricesFromAPI();
     log('[FETCH] Prices updated successfully');
+    
+    saveLastFetchTimestamp();
     setRefreshButtonSuccess();
     showSuccessToast('¡Ya puedes convertir!');
     renderAllUI();
@@ -390,30 +374,14 @@ export async function refreshPrices() {
     } else {
       setResult('—');
     }
-    const countdownSeconds = Math.floor(CONFIG.CACHE_TTL / 1000);
+    
     isCooldown = true;
-    saveCooldownTimestamp();
-    saveLastRefreshTimestamp();
-    let cooldownRemaining = countdownSeconds;
-    const cooldownInterval = setInterval(() => {
-      cooldownRemaining--;
-      updateCooldownState(cooldownRemaining);
-      if (cooldownRemaining <= 0) {
-        clearInterval(cooldownInterval);
-        clearCooldownTimestamp();
-      }
-    }, 1000);
+    startCooldownTimer(COOLDOWN_MS);
+    
     setTimeout(() => {
       hideReferenceTable();
       log('[UI] Tabla y precio de referencia ocultados después de 60 segundos');
-    }, countdownSeconds * 1000);
-    startRefreshCountdown(countdownSeconds, () => {
-      log('[SECURITY] Cooldown completed, button unlocked');
-      isCooldown = false;
-      updateCooldownState(0);
-      clearCooldownTimestamp();
-      clearInterval(cooldownInterval);
-    });
+    }, COOLDOWN_MS);
   } catch (err) {
     error('[FETCH] Error refreshing prices:', err);
     const errorMessage = err.message || '';
@@ -444,6 +412,23 @@ export async function refreshPrices() {
       }
     }
   }
+}
+
+export async function refreshPrices() {
+  log('[SECURITY] Refresh clicked by user');
+  
+  if (isCooldown) {
+    warn('[SECURITY] Cooldown active, ignoring click');
+    return;
+  }
+  
+  if (!hasConsent()) {
+    window.pendingRefreshAction = attemptRefresh;
+    showConsentModal();
+    return;
+  }
+  
+  await attemptRefresh();
 }
 async function init() {
   log('[INIT] Initializing P2P Panel');

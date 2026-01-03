@@ -8,59 +8,45 @@ export const CONFIG = {
     MIN_FINISH_RATE: 95
   };
 
-const COOLDOWN_STORAGE_KEY = 'p2p-cooldown-timestamp';
-const LAST_REFRESH_STORAGE_KEY = 'p2p-last-refresh';
+export const COOLDOWN_MS = 60_000;
 
-export function saveCooldownTimestamp() {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      localStorage.setItem(COOLDOWN_STORAGE_KEY, Date.now().toString());
-    } catch (e) {
-      console.warn('[Storage] Failed to save cooldown timestamp:', e);
-    }
-  }
+export function setCookie(name, value, maxAgeSeconds) {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=${value}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`;
 }
 
-export function getCooldownRemaining() {
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return 0;
-  }
-  try {
-    const savedTimestamp = localStorage.getItem(COOLDOWN_STORAGE_KEY);
-    if (!savedTimestamp) {
-      return 0;
-    }
-    const timestamp = parseInt(savedTimestamp, 10);
-    if (isNaN(timestamp)) {
-      return 0;
-    }
-    const now = Date.now();
-    const elapsed = Math.floor((now - timestamp) / 1000);
-    const cooldownSeconds = Math.floor(CONFIG.CACHE_TTL / 1000);
-    const remaining = Math.max(0, cooldownSeconds - elapsed);
-    return remaining;
-  } catch (e) {
-    console.warn('[Storage] Failed to get cooldown remaining:', e);
-    return 0;
-  }
+export function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1] || null;
 }
 
-export function clearCooldownTimestamp() {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      localStorage.removeItem(COOLDOWN_STORAGE_KEY);
-    } catch (e) {
-      console.warn('[Storage] Failed to clear cooldown timestamp:', e);
-    }
-  }
+export function deleteCookie(name) {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; max-age=0; path=/; SameSite=Lax`;
 }
 
-export function saveLastRefreshTimestamp() {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      localStorage.setItem(LAST_REFRESH_STORAGE_KEY, Date.now().toString());
-    } catch (e) {
-      console.warn('[Storage] Failed to save last refresh timestamp:', e);
-    }
-  }
+export function hasConsent() {
+  return getCookie('p2p_consent') === 'true';
+}
+
+export function setConsent() {
+  const oneYear = 60 * 60 * 24 * 365;
+  setCookie('p2p_consent', 'true', oneYear);
+}
+
+export function getRemainingCooldown() {
+  const lastFetch = getCookie('p2p_last_fetch');
+  if (!lastFetch) return 0;
+  const timestamp = Number(lastFetch);
+  if (!timestamp || isNaN(timestamp)) return 0;
+  const elapsed = Date.now() - timestamp;
+  return Math.max(COOLDOWN_MS - elapsed, 0);
+}
+
+export function saveLastFetchTimestamp() {
+  const oneDay = 60 * 60 * 24;
+  setCookie('p2p_last_fetch', Date.now().toString(), oneDay);
 }

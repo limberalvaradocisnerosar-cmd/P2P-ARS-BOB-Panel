@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="assets/css/convertidor.css">
   <link rel="stylesheet" href="assets/css/tabladereferencia.css">
   <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/consent-modal.css">
   <script src="assets/js/icon-protection.js"></script>
 </head>
 <body>
@@ -74,6 +75,23 @@
         <path d="M20 6L9 17l-5-5"></path>
       </svg>
       <span class="toast-message" id="toast-message"></span>
+    </div>
+  </div>
+
+  
+  <div class="consent-modal-overlay ui-hidden" id="consent-modal-overlay" role="dialog" aria-labelledby="consent-modal-title" aria-modal="true">
+    <div class="consent-modal">
+      <div class="consent-modal-header">
+        <h2 class="consent-modal-title" id="consent-modal-title">Consentimiento de Cache</h2>
+        <p class="consent-modal-text">
+          Usamos cache local por dispositivo para limitar actualizaciones y proteger la API.
+          No rastreamos ni compartimos datos.
+        </p>
+      </div>
+      <div class="consent-modal-actions">
+        <button class="btn btn-secondary consent-modal-btn" id="consent-cancel-btn" type="button">Cancelar</button>
+        <button class="btn btn-primary consent-modal-btn" id="consent-accept-btn" type="button">Aceptar</button>
+      </div>
     </div>
   </div>
 
