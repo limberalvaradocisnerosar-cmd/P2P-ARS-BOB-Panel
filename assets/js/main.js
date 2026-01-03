@@ -227,6 +227,27 @@ async function loadPrices(forceRefresh = false) {
     warn('[SECURITY] loadPrices called with forceRefresh=true - this should not happen');
     return;
   }
+  const cooldownRemaining = getCooldownRemaining();
+  if (cooldownRemaining > 0) {
+    log('[SECURITY] Cooldown active from previous session:', cooldownRemaining, 'seconds');
+    isCooldown = true;
+    const refreshBtn = document.getElementById('refresh-btn');
+    const buttonText = refreshBtn?.querySelector('.ui-button-text');
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('cursor-not-allowed', 'success');
+      refreshBtn.classList.remove('cursor-pointer');
+      if (buttonText) {
+        buttonText.textContent = 'Actualizado';
+      }
+    }
+    startRefreshCountdown(cooldownRemaining, () => {
+      log('[SECURITY] Cooldown completed, button unlocked');
+      isCooldown = false;
+      updateCooldownState(0);
+      clearCooldownTimestamp();
+    });
+  }
     const loadedFromCache = loadPricesStateFromCache();
     if (loadedFromCache) {
       log('[CACHE] Loaded prices from cache');
