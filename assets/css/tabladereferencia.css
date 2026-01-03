@@ -230,20 +230,8 @@
   color: var(--text-primary);
 }
 
-.reference-table.reference-table-buy thead th:last-child {
-  color: var(--accent-buy);
-}
-
 .reference-table.reference-table-sell thead {
   border-bottom: 2px solid var(--accent-sell);
-}
-
-.reference-table.reference-table-sell thead th {
-  color: var(--text-primary);
-}
-
-.reference-table.reference-table-sell thead th:last-child {
-  color: var(--accent-sell);
 }
 
 .reference-empty {

@@ -415,6 +415,7 @@ export function startRefreshCountdown(seconds, onComplete) {
         }
       }
       setRefreshButtonLoading(false);
+      clearCooldownTimestamp();
       if (onComplete) {
         onComplete();
       }
@@ -662,13 +663,11 @@ function createTableRow(item, index, market, side, sideColor) {
   
   const tdPrice = document.createElement('td');
   tdPrice.className = 'price-cell';
-  tdPrice.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   const price = sanitizePrice(item?.price);
   tdPrice.textContent = price !== null ? formatNumber(price, 2) : '—';
   
   const tdSide = document.createElement('td');
   tdSide.className = 'side-cell';
-  tdSide.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   tdSide.textContent = side;
   
   const tdMarket = document.createElement('td');
@@ -741,11 +740,9 @@ export function renderFilteredReferenceTable(referencePrices, uiState) {
   const theadRow = document.createElement('tr');
   
   const thPrice = document.createElement('th');
-  thPrice.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   thPrice.textContent = 'Precio';
   
   const thSide = document.createElement('th');
-  thSide.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   thSide.textContent = 'Side';
   
   const thMarket = document.createElement('th');

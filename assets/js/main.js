@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js';
+import { CONFIG, saveCooldownTimestamp, getCooldownRemaining, clearCooldownTimestamp, saveLastRefreshTimestamp } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
@@ -371,12 +371,15 @@ export async function refreshPrices() {
     }
     const countdownSeconds = Math.floor(CONFIG.CACHE_TTL / 1000);
     isCooldown = true;
+    saveCooldownTimestamp();
+    saveLastRefreshTimestamp();
     let cooldownRemaining = countdownSeconds;
     const cooldownInterval = setInterval(() => {
       cooldownRemaining--;
       updateCooldownState(cooldownRemaining);
       if (cooldownRemaining <= 0) {
         clearInterval(cooldownInterval);
+        clearCooldownTimestamp();
       }
     }, 1000);
     setTimeout(() => {
@@ -387,6 +390,7 @@ export async function refreshPrices() {
       log('[SECURITY] Cooldown completed, button unlocked');
       isCooldown = false;
       updateCooldownState(0);
+      clearCooldownTimestamp();
       clearInterval(cooldownInterval);
     });
   } catch (err) {
