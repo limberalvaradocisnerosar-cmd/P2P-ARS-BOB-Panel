@@ -14,6 +14,10 @@ const appState = {
   cooldownRemaining: 0
 };
 
+if (typeof window !== 'undefined') {
+  window.appState = appState;
+}
+
 let pricesState = {
   ars: { buy: null, sell: null },
   bob: { buy: null, sell: null },
