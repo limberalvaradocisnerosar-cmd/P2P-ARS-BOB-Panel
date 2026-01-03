@@ -4,18 +4,16 @@ let currentTheme = DEFAULT_THEME;
 function applyTheme(theme) {
   const html = document.documentElement;
   const body = document.body;
-  const originalHtmlTransition = html.style.transition;
-  const originalBodyTransition = body.style.transition;
-  html.style.transition = 'none';
-  body.style.transition = 'none';
+  html.classList.add('no-transitions');
+  body.classList.add('no-transitions');
   html.setAttribute('data-theme', theme);
   currentTheme = theme;
   localStorage.setItem(THEME_STORAGE_KEY, theme);
   void html.offsetHeight;
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      html.style.transition = originalHtmlTransition;
-      body.style.transition = originalBodyTransition;
+      html.classList.remove('no-transitions');
+      body.classList.remove('no-transitions');
     });
   });
   updateThemeLabel(theme);

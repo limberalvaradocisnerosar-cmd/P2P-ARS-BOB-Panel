@@ -38,7 +38,7 @@
   cursor: wait;
 }
 
-.btn.is-loading > *:not(.btn-spinner):not(.ui-button-loader):not(.ui-button-countdown) {
+.btn.is-loading > *:not(.btn-spinner):not(.ui-button-loader) {
   opacity: 0.6;
 }
 

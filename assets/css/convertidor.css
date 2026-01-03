@@ -258,16 +258,21 @@
   transition: all var(--transition-base);
 }
 
+.icon-protected {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: auto !important;
+}
+
 .currency-flag {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
-  user-drag: none;
   -webkit-touch-callout: none;
   pointer-events: auto;
   position: relative;
@@ -467,20 +472,6 @@
 }
 
 
-.ui-button-countdown {
-  display: none;
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-semibold);
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--border-radius-sm);
-  min-width: 2rem;
-  text-align: center;
-}
-
-.converter-submit-btn.is-loading .ui-button-countdown {
-  display: inline-block;
-}
 
 .converter-submit-btn.is-loading .ui-button-loader {
   display: inline-block;

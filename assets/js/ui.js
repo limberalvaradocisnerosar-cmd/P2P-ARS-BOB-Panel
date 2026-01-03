@@ -195,8 +195,7 @@ function updateCurrencyBadge() {
       : 'assets/icons/bolivia.svg';
     fromFlagImg.alt = direction === 'ARS_BOB' ? 'Argentina' : 'Bolivia';
     fromFlagImg.setAttribute('draggable', 'false');
-    fromFlagImg.style.userSelect = 'none';
-    fromFlagImg.style.webkitUserDrag = 'none';
+    fromFlagImg.classList.add('icon-protected');
   }
   if (toFlagImg) {
     toFlagImg.src = direction === 'ARS_BOB' 
@@ -204,19 +203,18 @@ function updateCurrencyBadge() {
       : 'assets/icons/argentina.svg';
     toFlagImg.alt = direction === 'ARS_BOB' ? 'Bolivia' : 'Argentina';
     toFlagImg.setAttribute('draggable', 'false');
-    toFlagImg.style.userSelect = 'none';
-    toFlagImg.style.webkitUserDrag = 'none';
+    toFlagImg.classList.add('icon-protected');
   }
   const fromFlag = document.getElementById('from-flag');
   const toFlag = document.getElementById('to-flag');
   if (fromFlag) {
-    fromFlag.style.display = 'flex';
-    fromFlag.style.userSelect = 'none';
+    fromFlag.classList.add('ui-visible-flex');
+    fromFlag.classList.add('icon-protected');
     fromFlag.setAttribute('draggable', 'false');
   }
   if (toFlag) {
-    toFlag.style.display = 'flex';
-    toFlag.style.userSelect = 'none';
+    toFlag.classList.add('ui-visible-flex');
+    toFlag.classList.add('icon-protected');
     toFlag.setAttribute('draggable', 'false');
   }
 }
@@ -332,41 +330,37 @@ export function setRefreshButtonLoading(loading, countdownSeconds = null) {
   const refreshBtn = document.getElementById('refresh-btn');
   const buttonText = refreshBtn?.querySelector('.ui-button-text');
   const buttonLoader = refreshBtn?.querySelector('.ui-button-loader');
-  const countdownElement = refreshBtn?.querySelector('.ui-button-countdown');
   if (!refreshBtn) {
     return;
   }
   if (loading) {
     refreshBtn.disabled = true;
     refreshBtn.classList.add('is-loading');
-    refreshBtn.style.cursor = 'not-allowed';
-    if (buttonLoader) buttonLoader.style.display = 'inline-block';
+    refreshBtn.classList.add('cursor-not-allowed');
+    refreshBtn.classList.remove('cursor-pointer');
+    if (buttonLoader) {
+      buttonLoader.classList.remove('ui-hidden');
+      buttonLoader.classList.add('ui-visible-inline-block');
+    }
     if (countdownSeconds !== null && countdownSeconds > 0) {
       if (buttonText) {
         buttonText.textContent = 'Actualizar precios';
-      }
-      if (countdownElement) {
-        countdownElement.textContent = `${countdownSeconds}s`;
-        countdownElement.style.display = 'inline-block';
       }
       setPanelState('cache');
     } else {
       if (buttonText) {
         buttonText.textContent = 'Actualizando...';
       }
-      if (countdownElement) {
-        countdownElement.style.display = 'none';
-      }
       setPanelState('loading');
     }
   } else {
     refreshBtn.disabled = false;
     refreshBtn.classList.remove('is-loading', 'success');
-    refreshBtn.style.cursor = 'pointer';
-    if (buttonLoader) buttonLoader.style.display = 'none';
-    if (countdownElement) {
-      countdownElement.style.display = 'none';
-      countdownElement.textContent = '';
+    refreshBtn.classList.add('cursor-pointer');
+    refreshBtn.classList.remove('cursor-not-allowed');
+    if (buttonLoader) {
+      buttonLoader.classList.remove('ui-visible-inline-block');
+      buttonLoader.classList.add('ui-hidden');
     }
     if (buttonText) {
       buttonText.textContent = 'Actualizar precios';
@@ -395,14 +389,30 @@ export function startRefreshCountdown(seconds, onComplete) {
     clearInterval(refreshCountdownInterval);
   }
   let remaining = seconds;
-  setRefreshButtonLoading(true, remaining);
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('cursor-not-allowed');
+    refreshBtn.classList.remove('cursor-pointer');
+  }
   refreshCountdownInterval = setInterval(() => {
     remaining--;
     if (remaining > 0) {
-      setRefreshButtonLoading(true, remaining);
+      const pricesState = window.getPricesState?.();
+      if (pricesState?.timestamp) {
+        const cacheAge = Date.now() - pricesState.timestamp.getTime();
+        const cacheTTL = 60000;
+        const remainingSeconds = Math.max(0, Math.floor((cacheTTL - cacheAge) / 1000));
+        updateCacheStatusBadge(remainingSeconds, pricesState.timestamp);
+      }
     } else {
       clearInterval(refreshCountdownInterval);
       refreshCountdownInterval = null;
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.add('cursor-pointer');
+        refreshBtn.classList.remove('cursor-not-allowed');
+      }
       setRefreshButtonLoading(false);
       if (onComplete) {
         onComplete();
@@ -651,13 +661,13 @@ function createTableRow(item, index, market, side, sideColor) {
   
   const tdPrice = document.createElement('td');
   tdPrice.className = 'price-cell';
-  tdPrice.style.color = sideColor;
+  tdPrice.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   const price = sanitizePrice(item?.price);
   tdPrice.textContent = price !== null ? formatNumber(price, 2) : '—';
   
   const tdSide = document.createElement('td');
   tdSide.className = 'side-cell';
-  tdSide.style.color = sideColor;
+  tdSide.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   tdSide.textContent = side;
   
   const tdMarket = document.createElement('td');
@@ -727,15 +737,14 @@ export function renderFilteredReferenceTable(referencePrices, uiState) {
   table.className = `reference-table reference-table-${side}`;
   
   const thead = document.createElement('thead');
-  thead.style.borderBottom = `2px solid ${sideColor}`;
   const theadRow = document.createElement('tr');
   
   const thPrice = document.createElement('th');
-  thPrice.style.color = sideColor;
+  thPrice.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   thPrice.textContent = 'Precio';
   
   const thSide = document.createElement('th');
-  thSide.style.color = sideColor;
+  thSide.classList.add(side === 'BUY' ? 'color-buy' : 'color-sell');
   thSide.textContent = 'Side';
   
   const thMarket = document.createElement('th');
@@ -785,9 +794,12 @@ export function renderReferenceTable(referencePrices) {
     warn('[UI] Reference panel: Content element not found');
     return;
   }
-  referencePanel.style.display = 'block';
+  referencePanel.classList.remove('ui-hidden');
+  referencePanel.classList.add('ui-visible');
   if (collapsableContent) {
-    collapsableContent.style.display = 'none';
+    collapsableContent.classList.remove('ui-visible');
+    collapsableContent.classList.add('ui-hidden');
+    collapsableContent.setAttribute('data-expanded', 'false');
   }
   const toggleBtn = document.getElementById('reference-toggle-btn');
   if (toggleBtn) {
@@ -798,7 +810,9 @@ export function renderReferenceTable(referencePrices) {
 export function hideReferenceTable() {
   const collapsableContent = document.getElementById('reference-collapsable-content');
   if (collapsableContent) {
-    collapsableContent.style.display = 'none';
+    collapsableContent.classList.remove('ui-visible');
+    collapsableContent.classList.add('ui-hidden');
+    collapsableContent.setAttribute('data-expanded', 'false');
   }
   const toggleBtn = document.getElementById('reference-toggle-btn');
   if (toggleBtn) {
@@ -815,11 +829,13 @@ export function toggleReferenceContent() {
   if (isExpanded) {
     collapsableContent.setAttribute('data-expanded', 'false');
     requestAnimationFrame(() => {
-      collapsableContent.style.display = 'none';
+      collapsableContent.classList.remove('ui-visible');
+      collapsableContent.classList.add('ui-hidden');
     });
     toggleBtn.setAttribute('aria-expanded', 'false');
   } else {
-    collapsableContent.style.display = 'block';
+    collapsableContent.classList.remove('ui-hidden');
+    collapsableContent.classList.add('ui-visible');
     requestAnimationFrame(() => {
       collapsableContent.setAttribute('data-expanded', 'true');
     });

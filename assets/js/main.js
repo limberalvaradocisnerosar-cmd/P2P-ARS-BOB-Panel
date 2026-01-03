@@ -339,7 +339,8 @@ export async function refreshPrices() {
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) {
     refreshBtn.disabled = true;
-    refreshBtn.style.cursor = 'not-allowed';
+    refreshBtn.classList.add('cursor-not-allowed');
+    refreshBtn.classList.remove('cursor-pointer');
   }
   setRefreshButtonLoading(true, null);
   try {
@@ -413,7 +414,8 @@ export async function refreshPrices() {
       setRefreshButtonLoading(false);
       if (refreshBtn) {
         refreshBtn.disabled = false;
-        refreshBtn.style.cursor = 'pointer';
+        refreshBtn.classList.add('cursor-pointer');
+        refreshBtn.classList.remove('cursor-not-allowed');
       }
     }
   }

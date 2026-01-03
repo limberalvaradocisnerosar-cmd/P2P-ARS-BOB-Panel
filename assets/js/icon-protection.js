@@ -30,17 +30,7 @@
     element.setAttribute('ondragstart', 'return false;');
     element.setAttribute('onselectstart', 'return false;');
     element.setAttribute('oncontextmenu', 'return false;');
-    element.style.userSelect = 'none';
-    element.style.webkitUserSelect = 'none';
-    element.style.mozUserSelect = 'none';
-    element.style.msUserSelect = 'none';
-    element.style.webkitUserDrag = 'none';
-    element.style.khtmlUserDrag = 'none';
-    element.style.mozUserDrag = 'none';
-    element.style.oUserDrag = 'none';
-    element.style.userDrag = 'none';
-    element.style.webkitTouchCallout = 'none';
-    element.style.pointerEvents = 'auto';
+    element.classList.add('icon-protected');
     ['contextmenu', 'dragstart', 'selectstart', 'mousedown', 'mouseup'].forEach(function(eventType) {
       element.addEventListener(eventType, function(e) {
         if (isProtectedElement(e.target) || isProtectedElement(e.currentTarget)) {

@@ -332,6 +332,30 @@ img[src*="assets/icons/"],
 }
 
 .ui-hidden {
+  display: none !important;
+}
+
+.ui-visible {
+  display: block !important;
+}
+
+.ui-visible-flex {
+  display: flex !important;
+}
+
+.ui-visible-inline-block {
+  display: inline-block !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.ui-hidden-sr {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -341,6 +365,11 @@ img[src*="assets/icons/"],
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+.no-transitions,
+.no-transitions * {
+  transition: none !important;
 }
 
 * {

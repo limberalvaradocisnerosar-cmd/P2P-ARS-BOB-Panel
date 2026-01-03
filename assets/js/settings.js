@@ -49,7 +49,7 @@ async function openSettingsPanel() {
   panel.classList.add('open');
   trigger.setAttribute('aria-expanded', 'true');
   isSettingsOpen = true;
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('body-no-scroll');
   const settingsContent = document.getElementById('settings-content');
   if (settingsContent) {
     const content = settingsContent.innerHTML.trim();
@@ -160,7 +160,9 @@ function setupCollapsableSections() {
         const content = document.getElementById(contentId);
         if (header && content) {
           header.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
+          content.classList.remove('ui-visible');
+          content.classList.add('ui-hidden');
+          content.setAttribute('data-expanded', 'false');
         }
       }
     });
@@ -170,16 +172,22 @@ function setupCollapsableSections() {
     const content = document.getElementById(contentId);
     if (header && content && !header.dataset.accordionConfigured) {
       header.setAttribute('aria-expanded', 'false');
-      content.style.display = 'none';
+      content.classList.remove('ui-visible');
+      content.classList.add('ui-hidden');
+      content.setAttribute('data-expanded', 'false');
       header.addEventListener('click', () => {
         const isExpanded = header.getAttribute('aria-expanded') === 'true';
         if (isExpanded) {
           header.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
+          content.classList.remove('ui-visible');
+          content.classList.add('ui-hidden');
+          content.setAttribute('data-expanded', 'false');
         } else {
           closeAllSections(headerId);
           header.setAttribute('aria-expanded', 'true');
-          content.style.display = 'block';
+          content.classList.remove('ui-hidden');
+          content.classList.add('ui-visible');
+          content.setAttribute('data-expanded', 'true');
           if (headerId === 'prices-accordion-header') {
             loadUsedPricesIfNeeded();
           } else if (headerId === 'system-accordion-header') {
@@ -204,7 +212,7 @@ function closeSettingsPanel() {
     trigger.setAttribute('aria-expanded', 'false');
   }
   isSettingsOpen = false;
-  document.body.style.overflow = '';
+  document.body.classList.remove('body-no-scroll');
 }
 function toggleTheme() {
   import('./theme.js').then((module) => {

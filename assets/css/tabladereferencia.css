@@ -67,9 +67,12 @@
   }
 }
 
-.reference-collapsable-content[data-expanded="true"],
-.reference-collapsable-content[style*="display: block"] {
-  display: block !important;
+.reference-collapsable-content:not(.ui-hidden) {
+  display: block;
+}
+
+.reference-collapsable-content.ui-visible,
+.reference-collapsable-content[data-expanded="true"] {
   max-height: 2000px;
   opacity: 1;
   padding: var(--spacing-md);
