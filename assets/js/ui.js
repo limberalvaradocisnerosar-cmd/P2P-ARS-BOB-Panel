@@ -97,6 +97,29 @@ export function getAmount() {
   }
   return number;
 }
+export function setAmount(value) {
+  const amountInput = document.getElementById('amount');
+  if (!amountInput) return;
+  if (typeof value === 'number' && value > 0) {
+    const formatted = formatMonetaryInput(value.toString().replace('.', ','));
+    amountInput.value = formatted;
+    amountInput.dataset.numericValue = value.toString();
+  } else if (typeof value === 'string') {
+    amountInput.value = value;
+    const numericValue = parseMonetaryInput(value);
+    amountInput.dataset.numericValue = numericValue !== null ? numericValue.toString() : '';
+  }
+}
+
+export function setDirection(direction) {
+  const directionSelect = document.getElementById('direction');
+  if (!directionSelect) return;
+  if (direction === 'ARS_BOB' || direction === 'BOB_ARS') {
+    directionSelect.value = direction;
+    directionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}
+
 export function getDirection() {
   const directionSelect = document.getElementById('direction');
   if (!directionSelect) {
@@ -862,6 +885,14 @@ export function renderReferenceTable(referencePrices) {
   }
   setupReferencePricesToggle();
 }
+export function showReferenceTable() {
+  const collapsableContent = document.getElementById('reference-collapsable-content');
+  if (!collapsableContent) return;
+  collapsableContent.classList.remove('ui-hidden');
+  collapsableContent.classList.add('ui-visible');
+  collapsableContent.setAttribute('data-expanded', 'true');
+}
+
 export function hideReferenceTable() {
   const collapsableContent = document.getElementById('reference-collapsable-content');
   if (collapsableContent) {
