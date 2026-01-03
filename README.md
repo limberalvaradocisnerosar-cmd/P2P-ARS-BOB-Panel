@@ -198,6 +198,23 @@ index.html
 
 ---
 
+## 🏷️ Release v1.0.0
+
+Para crear el tag de release v1.0.0, ver [RELEASE.md](./RELEASE.md).
+
+**Comandos rápidos:**
+
+```bash
+git add .
+git commit -m "release: v1.0.0 stable"
+git tag -a v1.0.0 -m "P2P Panel v1.0.0 - Stable Release"
+git push origin main --tags
+```
+
+**⚠️ Importante:** Verificar el checklist de regresión en [RELEASE.md](./RELEASE.md) antes de crear el tag.
+
+---
+
 ## 🧪 Estado del sistema
 
 ✔ Producción estable

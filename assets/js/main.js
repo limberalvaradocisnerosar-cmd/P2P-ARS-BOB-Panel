@@ -498,7 +498,7 @@ async function intentarActualizar() {
     }
   } catch (err) {
     error('[FETCH] Error refreshing prices:', err);
-    const errorMessage = err.message || '';
+    const errorMessage = (err && typeof err === 'object' && err.message) ? err.message : (typeof err === 'string' ? err : '');
     if (errorMessage.includes('Rate limit') || errorMessage.includes('429')) {
       setError(null, 'RATE_LIMIT');
     } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
@@ -595,6 +595,20 @@ async function init() {
   await initApp();
   
   log('[INIT] Initialization complete');
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    if (event.error && typeof event.error === 'object') {
+      error('[GLOBAL] Uncaught error:', event.error);
+    } else {
+      error('[GLOBAL] Uncaught error:', event.message, event.filename, event.lineno);
+    }
+  });
+  
+  window.addEventListener('unhandledrejection', (event) => {
+    error('[GLOBAL] Unhandled promise rejection:', event.reason);
+  });
 }
 
 if (document.readyState === 'loading') {
