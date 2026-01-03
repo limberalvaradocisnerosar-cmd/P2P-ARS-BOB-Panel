@@ -4,7 +4,7 @@
   "description": "Premium fintech dashboard for ARS ↔ BOB currency conversion using Binance P2P reference prices",
   "type": "module",
   "engines": {
-    "node": ">=18.x"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "echo 'Static site - no build needed'"
