@@ -190,26 +190,7 @@ function updateCurrencyBadge() {
   if (fromFlag) fromFlag.style.display = 'flex';
   if (toFlag) toFlag.style.display = 'flex';
 }
-export function updatePriceReference(priceFrom, priceTo, direction) {
-  const priceReferenceEl = document.getElementById('price-reference');
-  const priceReferenceValueEl = document.getElementById('price-reference-value');
-  if (priceReferenceEl && priceReferenceValueEl) {
-    if (direction === 'ARS_BOB') {
-      priceReferenceValueEl.textContent = `${formatNumber(priceFrom, 2)} ARS / ${formatNumber(priceTo, 2)} BOB`;
-    } else {
-      priceReferenceValueEl.textContent = `${formatNumber(priceFrom, 2)} BOB / ${formatNumber(priceTo, 2)} ARS`;
-    }
-    priceReferenceEl.style.display = 'block';
-  }
-}
-export function hidePriceReference() {
-  const priceReferenceEl = document.getElementById('price-reference');
-  if (priceReferenceEl) {
-    priceReferenceEl.style.display = 'none';
-  }
-}
 export function updateResultPrices(priceFrom, priceTo, direction) {
-  updatePriceReference(priceFrom, priceTo, direction);
 }
 export function setupSwapButton() {
   const swapButton = document.getElementById('swap-button');
@@ -594,16 +575,14 @@ export function renderReferenceTable(referencePrices) {
     }
     return;
   }
-  renderFilteredReferenceTable(referencePrices, referenceTableUIState);
   referencePanel.style.display = 'block';
   if (collapsableContent) {
-    collapsableContent.style.display = 'block';
+    collapsableContent.style.display = 'none';
   }
   const toggleBtn = document.getElementById('reference-toggle-btn');
   if (toggleBtn) {
-    toggleBtn.setAttribute('aria-expanded', 'true');
+    toggleBtn.setAttribute('aria-expanded', 'false');
   }
-  setupReferenceFilters();
   setupReferencePricesToggle();
 }
 export function hideReferenceTable() {
@@ -632,6 +611,7 @@ export function toggleReferenceContent() {
     const referencePrices = getCurrentReferencePrices();
     if (referencePrices) {
       renderFilteredReferenceTable(referencePrices, referenceTableUIState);
+      setupReferenceFilters();
     } else {
       const referenceContent = document.getElementById('reference-prices-content');
       if (referenceContent) {

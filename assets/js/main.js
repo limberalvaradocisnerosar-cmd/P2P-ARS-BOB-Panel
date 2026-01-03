@@ -2,7 +2,7 @@ import { CONFIG } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
-import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, updatePriceReference, hidePriceReference, hideReferenceTable, resetReferenceTableUIState } from './ui.js';
+import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState } from './ui.js';
 import { updateCacheState, updateCooldownState, updatePricesTimestamp, refreshPricesUsed } from './ui-state.js';
 const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 let pricesState = {
@@ -254,17 +254,11 @@ async function loadPrices(forceRefresh = false) {
     renderAllUI();
     refreshPricesUsed();
     const direction = getDirection();
-    if (pricesState.ars.buy && pricesState.bob.sell && direction === 'ARS_BOB') {
-      updatePriceReference(pricesState.ars.buy, pricesState.bob.sell, direction);
-    } else if (pricesState.bob.buy && pricesState.ars.sell && direction === 'BOB_ARS') {
-      updatePriceReference(pricesState.bob.buy, pricesState.ars.sell, direction);
-    }
   } else {
     if (IS_DEV) {
       console.log('[CACHE] Cache empty or expired - waiting for manual refresh');
     }
     setError('Actualizá los precios');
-    hidePriceReference();
     hideReferenceTable();
     refreshPricesUsed();
   }
@@ -346,7 +340,6 @@ export async function refreshPrices() {
   setRefreshButtonLoading(true, null);
   try {
     hideReferenceTable();
-    hidePriceReference();
     resetReferenceTableUIState();
     clearCache();
     clearPricesState();
@@ -364,11 +357,6 @@ export async function refreshPrices() {
     renderAllUI();
     refreshPricesUsed();
     const direction = getDirection();
-    if (direction === 'ARS_BOB') {
-      updatePriceReference(pricesState.ars.buy, pricesState.bob.sell, direction);
-    } else {
-      updatePriceReference(pricesState.bob.buy, pricesState.ars.sell, direction);
-    }
     if (window.currentReferencePrices) {
       renderReferenceTable(window.currentReferencePrices);
     }
@@ -390,7 +378,6 @@ export async function refreshPrices() {
     }, 1000);
     setTimeout(() => {
       hideReferenceTable();
-      hidePriceReference();
       if (IS_DEV) {
         console.log('[UI] Tabla y precio de referencia ocultados después de 60 segundos');
       }
@@ -491,9 +478,6 @@ async function init() {
     }, 200);
   }
   await loadPrices(false);
-  if (!window.currentReferencePrices) {
-    hidePriceReference();
-  }
   const initialAmount = getAmount();
   if (
     initialAmount > 0 &&
