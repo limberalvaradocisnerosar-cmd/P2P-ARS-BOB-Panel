@@ -10,12 +10,16 @@ import { log, warn, error } from './logger.js';
 const appState = {
   prices: null,
   referencePrices: null,
+  lastFetch: null,
+  cooldownRemaining: 0,
   isFetching: false,
-  cooldownRemaining: 0
+  hasConsent: false,
+  uiReady: false
 };
 
 if (typeof window !== 'undefined') {
   window.appState = appState;
+  window.updateRefreshButtonState = updateRefreshButtonState;
 }
 
 let pricesState = {
@@ -138,6 +142,8 @@ function restorePricesFromStorage() {
     referencePricesState = restoredRef;
     appState.referencePrices = restoredRef;
     window.currentReferencePrices = restoredRef;
+  } else {
+    appState.referencePrices = null;
   }
   
   log('[PERSISTENCE] Prices restored from storage');
@@ -198,14 +204,89 @@ function syncUIFromState() {
   refreshPricesUsed();
 }
 
+function restoreConsent() {
+  appState.hasConsent = hasConsent();
+  log('[PERSISTENCE] Consent restored:', appState.hasConsent);
+}
+
+function restoreLastFetch() {
+  const lastFetch = getCookie('p2p_last_fetch');
+  if (lastFetch) {
+    const timestamp = Number(lastFetch);
+    if (timestamp && !isNaN(timestamp)) {
+      appState.lastFetch = new Date(timestamp);
+      log('[PERSISTENCE] Last fetch restored:', appState.lastFetch);
+    }
+  }
+}
+
+function restoreCooldown() {
+  const last = Number(getCookie('p2p_last_fetch'));
+  if (!last || isNaN(last)) {
+    appState.cooldownRemaining = 0;
+    return;
+  }
+  
+  const remaining = Math.max(COOLDOWN_MS - (Date.now() - last), 0);
+  appState.cooldownRemaining = remaining;
+  
+  if (remaining > 0) {
+    log('[SECURITY] Cooldown active from cookie:', Math.ceil(remaining / 1000), 'seconds');
+    startCooldownTimer(remaining);
+    updateRefreshButtonState('cooldown');
+  } else {
+    appState.cooldownRemaining = 0;
+    updateRefreshButtonState('idle');
+  }
+}
+
+function updateRefreshButtonState(state) {
+  const refreshBtn = document.getElementById('refresh-btn');
+  const buttonText = refreshBtn?.querySelector('.ui-button-text');
+  if (!refreshBtn || !buttonText) return;
+  
+  refreshBtn.classList.remove('cursor-not-allowed', 'cursor-pointer', 'success', 'is-loading');
+  
+  switch (state) {
+    case 'idle':
+      refreshBtn.disabled = false;
+      refreshBtn.classList.add('cursor-pointer');
+      buttonText.textContent = 'Actualizar precios';
+      break;
+    case 'fetching':
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('cursor-not-allowed', 'is-loading');
+      buttonText.textContent = 'Actualizando...';
+      break;
+    case 'cooldown':
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('cursor-not-allowed', 'success');
+      buttonText.textContent = 'Actualizado';
+      break;
+    case 'ready':
+      refreshBtn.disabled = false;
+      refreshBtn.classList.add('cursor-pointer');
+      buttonText.textContent = 'Actualizar precios';
+      break;
+  }
+}
+
+function markUIReady() {
+  appState.uiReady = true;
+  log('[INIT] UI marked as ready');
+}
+
 async function initApp() {
   log('[INIT] Initializing app with full persistence');
   
+  restoreConsent();
+  restoreLastFetch();
+  restoreCooldown();
   restorePricesFromStorage();
   restoreInputsFromStorage();
   restoreTableState();
-  syncCooldown();
   syncUIFromState();
+  markUIReady();
   
   log('[INIT] App initialized - state restored');
 }
@@ -371,30 +452,35 @@ async function calculateConversion() {
 }
 
 async function intentarActualizar() {
-  if (appState.cooldownRemaining > 0 || appState.isFetching) {
-    log('[SECURITY] Cooldown or fetch in progress, blocking');
+  if (appState.isFetching) {
+    warn('[SECURITY] Fetch already in progress, ignoring');
     return;
   }
   
-  appState.isFetching = true;
-  const refreshBtn = document.getElementById('refresh-btn');
-  if (refreshBtn) {
-    refreshBtn.disabled = true;
-    refreshBtn.classList.add('cursor-not-allowed');
-    refreshBtn.classList.remove('cursor-pointer');
+  if (appState.cooldownRemaining > 0) {
+    warn('[SECURITY] Cooldown active, ignoring');
+    return;
   }
-  setRefreshButtonLoading(true, null);
+  
+  if (appState.cooldownRemaining < 0) {
+    appState.cooldownRemaining = 0;
+  }
+  
+  appState.isFetching = true;
+  updateRefreshButtonState('fetching');
   
   try {
     log('[FETCH] Fetching prices from Binance P2P');
     await fetchAllPricesFromAPI();
     log('[FETCH] Prices updated successfully');
     
-    setCookie('p2p_last_fetch', Date.now().toString(), 86400);
+    const now = Date.now();
+    setCookie('p2p_last_fetch', now.toString(), 86400);
+    appState.lastFetch = new Date(now);
     appState.cooldownRemaining = COOLDOWN_MS;
     startCooldownTimer(COOLDOWN_MS);
+    updateRefreshButtonState('cooldown');
     
-    setRefreshButtonSuccess();
     showSuccessToast('¡Ya puedes convertir!');
     renderAllUI();
     refreshPricesUsed();
@@ -433,12 +519,7 @@ async function intentarActualizar() {
     disableFetchAfterOperation();
     appState.isFetching = false;
     if (appState.cooldownRemaining <= 0) {
-      setRefreshButtonLoading(false);
-      if (refreshBtn) {
-        refreshBtn.disabled = false;
-        refreshBtn.classList.add('cursor-pointer');
-        refreshBtn.classList.remove('cursor-not-allowed');
-      }
+      updateRefreshButtonState('idle');
     }
   }
 }
@@ -446,12 +527,17 @@ async function intentarActualizar() {
 export async function refreshPrices() {
   log('[SECURITY] Refresh clicked by user');
   
+  if (appState.isFetching) {
+    warn('[SECURITY] Fetch in progress, ignoring click');
+    return;
+  }
+  
   if (appState.cooldownRemaining > 0) {
     warn('[SECURITY] Cooldown active, ignoring click');
     return;
   }
   
-  if (!hasConsent()) {
+  if (!appState.hasConsent) {
     window.pendingRefreshAction = intentarActualizar;
     showConsentModal();
     return;
