@@ -470,6 +470,9 @@ export function startCooldownTimer(durationMs) {
   }
   
   let remaining = durationMs;
+  if (window.appState) {
+    window.appState.cooldownRemaining = remaining;
+  }
   updateCountdownUI(remaining);
   
   const refreshBtn = document.getElementById('refresh-btn');
@@ -485,11 +488,17 @@ export function startCooldownTimer(durationMs) {
   
   cooldownInterval = setInterval(() => {
     remaining -= 1000;
+    if (window.appState) {
+      window.appState.cooldownRemaining = remaining;
+    }
     updateCountdownUI(remaining);
     
     if (remaining <= 0) {
       clearInterval(cooldownInterval);
       cooldownInterval = null;
+      if (window.appState) {
+        window.appState.cooldownRemaining = 0;
+      }
       if (refreshBtn) {
         refreshBtn.disabled = false;
         refreshBtn.classList.add('cursor-pointer');
