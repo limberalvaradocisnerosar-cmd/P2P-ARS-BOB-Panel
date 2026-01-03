@@ -271,7 +271,7 @@
   .app-card-converter,
   .app-card-references {
     border-width: 2px;
-    border-color: var(--color-text-primary);
+    border-color: var(--text-primary);
   }
 
   .converter-input-field,

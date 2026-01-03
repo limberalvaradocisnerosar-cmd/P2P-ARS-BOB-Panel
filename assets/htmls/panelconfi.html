@@ -1,7 +1,7 @@
 
 <div class="app-settings-header">
   <h2 class="app-settings-title">Configuración</h2>
-  <button class="settings-close-btn" id="settings-close" type="button" aria-label="Cerrar" data-action="close-settings">
+  <button class="btn btn-icon settings-close-btn" id="settings-close" type="button" aria-label="Cerrar" data-action="close-settings">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -29,16 +29,6 @@
       </div>
     </div>
     <div class="settings-card-content">
-      <div class="theme-indicator-group">
-        <div class="theme-indicator">
-          <span class="theme-indicator-label">Claro</span>
-          <span class="theme-indicator-value" id="theme-indicator-value">Claro</span>
-        </div>
-        <div class="theme-indicator">
-          <span class="theme-indicator-label">Oscuro</span>
-          <span class="theme-indicator-value">Oscuro</span>
-        </div>
-      </div>
       <div class="theme-switch-group">
         <label class="theme-switch-option">
           <input type="radio" name="theme" value="light" id="theme-light">
@@ -64,32 +54,13 @@
       </div>
     </div>
     <div class="settings-card-content">
-      <div class="security-status-list">
-        <div class="security-status-item">
-          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-          <span class="security-status-text">Solo actualización manual</span>
-        </div>
-        <div class="security-status-item">
-          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-          <span class="security-status-text">Política cache primero</span>
-        </div>
-        <div class="security-status-item">
-          <svg class="security-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-          <span class="security-status-text">Límite de tasa activo</span>
-        </div>
-      </div>
+      <p class="security-info-text">Las llamadas P2P solo se realizan manualmente. No hay fetch automático ni ejecución en background.</p>
     </div>
   </div>
 
   
   <div class="settings-card settings-card-collapsable">
-    <button class="settings-card-header settings-card-toggle" id="prices-accordion-header" type="button" aria-expanded="false" aria-controls="prices-accordion-content">
+    <button class="btn btn-secondary settings-card-header settings-card-toggle" id="prices-accordion-header" type="button" aria-expanded="false" aria-controls="prices-accordion-content">
       <div class="settings-card-title-group">
         <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -115,7 +86,7 @@
 
   
   <div class="settings-card settings-card-collapsable">
-    <button class="settings-card-header settings-card-toggle" id="system-accordion-header" type="button" aria-expanded="false" aria-controls="system-accordion-content">
+    <button class="btn btn-secondary settings-card-header settings-card-toggle" id="system-accordion-header" type="button" aria-expanded="false" aria-controls="system-accordion-content">
       <div class="settings-card-title-group">
         <svg class="settings-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <circle cx="12" cy="12" r="10"></circle>

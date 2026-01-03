@@ -1,0 +1,241 @@
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 150ms ease-out;
+  position: relative;
+  box-sizing: border-box;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn.is-loading {
+  pointer-events: none;
+  position: relative;
+  cursor: wait;
+}
+
+.btn.is-loading > *:not(.btn-spinner):not(.ui-button-loader):not(.ui-button-countdown) {
+  opacity: 0.6;
+}
+
+.btn-spinner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-primary {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  background: var(--converter-accent);
+  color: var(--text-inverse);
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-primary:hover:not(:disabled):not(.is-disabled) {
+  background: var(--converter-accent-hover);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled):not(.is-disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-primary:focus-visible {
+  box-shadow: var(--shadow-sm), 0 0 0 3px var(--converter-accent-light);
+}
+
+.btn-primary.success {
+  background: var(--accent-buy);
+  animation: successPulse 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    background: var(--accent-buy);
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.btn-secondary {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-secondary:hover:not(:disabled):not(.is-disabled) {
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled):not(.is-disabled) {
+  transform: translateY(0);
+  background: var(--surface-3);
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--converter-accent-light);
+}
+
+.btn-toggle {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 1rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  transition: all 150ms ease-out;
+}
+
+.btn-toggle:hover:not(:disabled):not(.is-disabled):not(.active):not(.is-active) {
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.btn-toggle.active,
+.btn-toggle.is-active {
+  background: var(--accent-brand);
+  color: var(--text-inverse);
+  border-color: var(--accent-brand);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-toggle:active:not(:disabled):not(.is-disabled) {
+  transform: scale(0.98);
+}
+
+.btn-toggle:focus-visible {
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--converter-accent-light);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease-out;
+}
+
+.btn-icon:hover:not(:disabled):not(.is-disabled) {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.btn-icon:active:not(:disabled):not(.is-disabled) {
+  transform: translateY(0) scale(0.95);
+}
+
+.btn-icon:focus-visible {
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--converter-accent-light);
+}
+
+.btn-icon.accent {
+  background: var(--converter-accent);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-icon.accent:hover:not(:disabled):not(.is-disabled) {
+  background: var(--converter-accent-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 480px) {
+  .btn-primary,
+  .btn-secondary {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-toggle {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover:not(:disabled):not(.is-disabled),
+  .btn-secondary:hover:not(:disabled):not(.is-disabled),
+  .btn-toggle:hover:not(:disabled):not(.is-disabled),
+  .btn-icon:hover:not(:disabled):not(.is-disabled) {
+    transform: none;
+  }
+}
+

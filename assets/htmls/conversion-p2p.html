@@ -10,18 +10,18 @@
   
   
   <header class="converter-header">
-    <h2 id="converter-title" class="card-title">Conversión ARS ↔ BOB</h2>
+    <h2 id="converter-title" class="card-title">Convertidor P2P ARS ↔ BOB</h2>
   </header>
 
   
   <div class="converter-input-section">
-    <label for="amount" class="converter-input-label">Ingresá el monto</label>
+    <label for="amount" class="converter-input-label" aria-hidden="true">Ingresá el monto</label>
     <div class="converter-input-wrapper">
       <input 
         type="text" 
         id="amount" 
         class="converter-input-field"
-        placeholder="0,00"
+        placeholder="Ingresá el monto"
         inputmode="decimal"
         pattern="[0-9.,]*"
         autocomplete="off"
@@ -50,7 +50,7 @@
 
     
     <button 
-      class="converter-swap-btn" 
+      class="btn btn-icon accent converter-swap-btn" 
       id="swap-button" 
       type="button" 
       aria-label="Invertir dirección de conversión"
@@ -102,16 +102,30 @@
   </div>
 
   
-  <button 
-    id="refresh-btn" 
-    class="converter-submit-btn" 
-    type="button" 
-    data-action="refresh"
-    aria-label="Actualizar precios"
-  >
-    <span class="ui-button-text">Actualizar precios</span>
-    <span class="ui-button-loader" aria-hidden="true"></span>
-  </button>
+  <div class="converter-refresh-wrapper">
+    <button 
+      id="refresh-btn" 
+      class="btn btn-primary converter-submit-btn" 
+      type="button" 
+      data-action="refresh"
+      aria-label="Actualizar precios"
+    >
+      <span class="ui-button-text">Actualizar precios</span>
+      <span class="btn-spinner ui-button-loader" aria-hidden="true"></span>
+      <span class="ui-button-countdown" aria-hidden="true"></span>
+    </button>
+    <div 
+      id="cache-status-badge" 
+      class="cache-status-badge" 
+      role="status" 
+      aria-live="polite"
+      aria-label="Estado del caché de precios"
+      data-state="unknown"
+    >
+      <span class="cache-status-dot"></span>
+      <span class="cache-status-text"></span>
+    </div>
+  </div>
 
 
   

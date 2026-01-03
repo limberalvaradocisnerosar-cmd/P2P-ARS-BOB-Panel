@@ -1,3 +1,5 @@
+import { warn } from './logger.js';
+
 let stateData = {
   cacheTTL: 0,
   cacheActive: false,
@@ -85,36 +87,95 @@ function formatFullDate(date) {
     second: '2-digit'
   });
 }
+function sanitizeNumeric(value) {
+  if (typeof value !== 'number' || !isFinite(value) || isNaN(value)) {
+    return null;
+  }
+  return value;
+}
+
+function createPriceItem(term, value) {
+  const item = document.createElement('div');
+  item.className = 'prices-definition-item';
+  
+  const dt = document.createElement('dt');
+  dt.className = 'prices-definition-term';
+  dt.textContent = term;
+  
+  const dd = document.createElement('dd');
+  dd.className = 'prices-definition-desc';
+  dd.textContent = formatNumber(value);
+  
+  item.appendChild(dt);
+  item.appendChild(dd);
+  return item;
+}
+
+function formatFullTimestamp(timestamp) {
+  if (!timestamp) return '—';
+  const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+}
+
+function createCalculationItem(label, value) {
+  const item = document.createElement('div');
+  item.className = 'prices-definition-item';
+  
+  const dt = document.createElement('dt');
+  dt.className = 'prices-definition-term';
+  dt.textContent = label;
+  
+  const dd = document.createElement('dd');
+  dd.className = 'prices-definition-desc';
+  dd.textContent = value;
+  
+  item.appendChild(dt);
+  item.appendChild(dd);
+  return item;
+}
+
 function renderPricesUsed() {
   const pricesContent = document.getElementById('prices-used-content');
   if (!pricesContent) return;
-  const pricesSection = document.getElementById('prices-accordion-content');
-  if (pricesSection && pricesSection.style.display === 'none') {
-    return;
-  }
   const prices = window.getPricesState ? window.getPricesState() : null;
-  if (!prices || !prices.ars.buy || !prices.ars.sell || !prices.bob.buy || !prices.bob.sell) {
-    pricesContent.innerHTML = '<div class="prices-empty-message">Los precios aún no se han cargado</div>';
+  if (!prices || typeof prices !== 'object') {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'prices-empty-message';
+    emptyMsg.textContent = 'Los precios aún no se han cargado';
+    pricesContent.textContent = '';
+    pricesContent.appendChild(emptyMsg);
     return;
   }
-  pricesContent.innerHTML = `
-    <div class="prices-definition-item">
-      <dt class="prices-definition-term">ARS BUY</dt>
-      <dd class="prices-definition-desc">${formatNumber(prices.ars.buy)}</dd>
-    </div>
-    <div class="prices-definition-item">
-      <dt class="prices-definition-term">ARS SELL</dt>
-      <dd class="prices-definition-desc">${formatNumber(prices.ars.sell)}</dd>
-    </div>
-    <div class="prices-definition-item">
-      <dt class="prices-definition-term">BOB BUY</dt>
-      <dd class="prices-definition-desc">${formatNumber(prices.bob.buy)}</dd>
-    </div>
-    <div class="prices-definition-item">
-      <dt class="prices-definition-term">BOB SELL</dt>
-      <dd class="prices-definition-desc">${formatNumber(prices.bob.sell)}</dd>
-    </div>
-  `;
+  const arsBuy = sanitizeNumeric(prices.ars?.buy);
+  const arsSell = sanitizeNumeric(prices.ars?.sell);
+  const bobBuy = sanitizeNumeric(prices.bob?.buy);
+  const bobSell = sanitizeNumeric(prices.bob?.sell);
+  const timestamp = prices.timestamp;
+  if (!arsBuy || !arsSell || !bobBuy || !bobSell) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'prices-empty-message';
+    emptyMsg.textContent = 'Los precios aún no se han cargado';
+    pricesContent.textContent = '';
+    pricesContent.appendChild(emptyMsg);
+    return;
+  }
+  pricesContent.textContent = '';
+  pricesContent.appendChild(createCalculationItem('Market', 'ARS / BOB'));
+  pricesContent.appendChild(createCalculationItem('Side', 'BUY / SELL'));
+  pricesContent.appendChild(createCalculationItem('Anuncios usados', '15'));
+  pricesContent.appendChild(createCalculationItem('ARS BUY (promedio)', formatNumber(arsBuy, 2)));
+  pricesContent.appendChild(createCalculationItem('ARS SELL (promedio)', formatNumber(arsSell, 2)));
+  pricesContent.appendChild(createCalculationItem('BOB BUY (promedio)', formatNumber(bobBuy, 2)));
+  pricesContent.appendChild(createCalculationItem('BOB SELL (promedio)', formatNumber(bobSell, 2)));
+  pricesContent.appendChild(createCalculationItem('Timestamp', formatFullTimestamp(timestamp)));
 }
 export function refreshPricesUsed() {
   renderPricesUsed();
@@ -174,21 +235,6 @@ function formatRelativeTime(date) {
   }
 }
 function renderSettingsPanelLazy() {
-  try {
-    const pricesContent = document.getElementById('prices-accordion-content');
-    const systemContent = document.getElementById('system-accordion-content');
-    if (pricesContent && pricesContent.style.display !== 'none') {
-      renderPricesUsed();
-    }
-    if (systemContent && systemContent.style.display !== 'none') {
-      renderSystemStatusInternal();
-    }
-  } catch (error) {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.warn('[UI-State] Error en renderSettingsPanelLazy:', error);
-    }
-  }
 }
 function renderSettingsPanel() {
   renderSettingsPanelLazy();
@@ -202,22 +248,13 @@ function renderState() {
     if (typeof renderSettingsPanelLazy === 'function') {
       renderSettingsPanelLazy();
     } else {
-      const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      if (IS_DEV) {
-        console.warn('[UI-State] renderSettingsPanelLazy no está definida');
-      }
+      warn('[UI-State] renderSettingsPanelLazy no está definida');
     }
   }
 }
 export function initUIState() {
   window.addEventListener('status-view-ready', () => {
     renderState();
-  });
-  window.addEventListener('settings-view-ready', () => {
-    const settingsPanel = document.getElementById('settings-panel');
-    if (settingsPanel?.classList.contains('open')) {
-      renderState();
-    }
   });
 }
 initUIState();

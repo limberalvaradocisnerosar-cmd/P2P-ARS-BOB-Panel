@@ -1,4 +1,6 @@
 import { CONFIG } from './config.js';
+import { warn, error } from './logger.js';
+
 const getProxyUrl = () => {
   if (typeof window === 'undefined') {
     return '/api/proxy';
@@ -56,10 +58,7 @@ export async function fetchPrices({ fiat, tradeType }) {
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       throw new Error('Fetch not allowed');
     } else {
-      const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      if (IS_DEV) {
-        console.warn('[SECURITY] Fetch blocked: Not user triggered');
-      }
+      warn('[SECURITY] Fetch blocked: Not user triggered');
       throw new Error('Fetch not allowed');
     }
   }
@@ -117,11 +116,8 @@ export async function fetchPrices({ fiat, tradeType }) {
       throw new Error('No valid prices found');
     }
     return ads;
-  } catch (error) {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.error('[API] Error fetching prices:', error);
-    }
-    throw error;
+  } catch (err) {
+    error('[API] Error fetching prices:', err);
+    throw err;
   }
 }

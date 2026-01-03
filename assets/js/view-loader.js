@@ -1,9 +1,8 @@
+import { error } from './logger.js';
+
 export async function loadHTML(path, container, append = false) {
   if (!container) {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.error('[ViewLoader] Container not provided');
-    }
+    error('[ViewLoader] Container not provided');
     return false;
   }
   try {
@@ -18,18 +17,12 @@ export async function loadHTML(path, container, append = false) {
       container.innerHTML = html;
     }
     if (container.innerHTML.trim().length === 0) {
-      const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      if (IS_DEV) {
-        console.error(`[ViewLoader] HTML was empty after insertion for ${path}`);
-      }
+      error(`[ViewLoader] HTML was empty after insertion for ${path}`);
       return false;
     }
     return true;
-  } catch (error) {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.error(`[ViewLoader] Error loading ${path}:`, error);
-    }
+  } catch (err) {
+    error(`[ViewLoader] Error loading ${path}:`, err);
     return false;
   }
 }

@@ -2,9 +2,9 @@ import { CONFIG } from './config.js';
 import { fetchPrices, enableFetchForUserAction, disableFetchAfterOperation, isFetchAllowedCheck } from './api.js';
 import { median, arsToBob, bobToArs, formatNumber, filterAds, removeOutliers } from './calc.js';
 import { getCache, setCache, clearCache } from './cache.js';
-import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState, showSuccessToast } from './ui.js';
+import { setResult, setLoading, setError, getAmount, getDirection, setupInputListeners, setRefreshButtonLoading, setRefreshButtonSuccess, renderInfoCard, renderReferencePrices, renderReferenceTable, setupReferencePricesToggle, startRefreshCountdown, setupSwapButton, updateResultPrices, hideReferenceTable, resetReferenceTableUIState, showSuccessToast, updateCacheStatusBadge, startCacheBadgeUpdates, stopCacheBadgeUpdates } from './ui.js';
 import { updateCacheState, updateCooldownState, updatePricesTimestamp, refreshPricesUsed } from './ui-state.js';
-const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+import { log, warn, error } from './logger.js';
 let pricesState = {
   ars: { buy: null, sell: null },
   bob: { buy: null, sell: null },
@@ -45,9 +45,7 @@ function clearPricesState() {
     timestamp: null
   };
   window.currentReferencePrices = null;
-  if (IS_DEV) {
-    console.log('[SECURITY] PricesState cleared');
-  }
+  log('[SECURITY] PricesState cleared');
 }
 function updatePricesState(arsBuy, arsSell, bobBuy, bobSell) {
   if (typeof arsBuy !== 'number' || !isFinite(arsBuy) || arsBuy <= 0) {
@@ -67,9 +65,7 @@ function updatePricesState(arsBuy, arsSell, bobBuy, bobSell) {
   pricesState.bob.buy = bobBuy;
   pricesState.bob.sell = bobSell;
   pricesState.timestamp = new Date();
-  if (IS_DEV) {
-    console.log('[STATE] PricesState updated', pricesState);
-  }
+  log('[STATE] PricesState updated', pricesState);
 }
 function loadPricesStateFromCache() {
   const arsBuy = getCache('ARS_BUY');
@@ -88,9 +84,7 @@ function loadPricesStateFromCache() {
       pricesState.bob.buy = bobBuy;
       pricesState.bob.sell = bobSell;
       pricesState.timestamp = new Date();
-      if (IS_DEV) {
-        console.log('[CACHE] PricesState loaded from cache', pricesState);
-      }
+      log('[CACHE] PricesState loaded from cache', pricesState);
       const cacheData = getCache('ARS_BUY');
       if (cacheData && pricesState.timestamp) {
         const cacheAge = Date.now() - pricesState.timestamp.getTime();
@@ -98,13 +92,15 @@ function loadPricesStateFromCache() {
         const remaining = Math.max(0, Math.floor((cacheTTL - cacheAge) / 1000));
         updateCacheState(remaining, pricesState.timestamp);
         updatePricesTimestamp(pricesState.timestamp.getTime());
+        updateCacheStatusBadge(remaining, pricesState.timestamp);
+        startCacheBadgeUpdates();
+      } else {
+        updateCacheStatusBadge(null, null);
       }
       window.currentReferencePrices = null;
       return true;
     } else {
-      if (IS_DEV) {
-        console.warn('[SECURITY] Invalid cached data detected, clearing cache');
-      }
+      warn('[SECURITY] Invalid cached data detected, clearing cache');
       clearCache();
     }
   }
@@ -132,14 +128,10 @@ function renderAllUI() {
   if (window.currentReferencePrices) {
     renderReferenceTable(window.currentReferencePrices);
   }
-  if (IS_DEV) {
-    console.log('[UI] All UI rendered from pricesState');
-  }
+  log('[UI] All UI rendered from pricesState');
 }
 async function fetchAndProcessPrice(fiat, tradeType) {
-  if (IS_DEV) {
-    console.log(`[FETCH] Fetching prices for ${fiat} ${tradeType}`);
-  }
+  log(`[FETCH] Fetching prices for ${fiat} ${tradeType}`);
   const ads = await fetchPrices({ fiat, tradeType });
   if (!ads || !Array.isArray(ads) || ads.length === 0) {
     throw new Error(`No ads returned for ${fiat} ${tradeType}`);
@@ -147,9 +139,7 @@ async function fetchAndProcessPrice(fiat, tradeType) {
   const filteredAds = filterAds(ads, CONFIG.MIN_MONTH_ORDERS, CONFIG.MIN_FINISH_RATE);
   let prices;
   if (filteredAds.length === 0) {
-    if (IS_DEV) {
-      console.warn(`[SECURITY] No ads passed filter for ${fiat} ${tradeType}, using all ads`);
-    }
+    warn(`[SECURITY] No ads passed filter for ${fiat} ${tradeType}, using all ads`);
     prices = ads.map(ad => ad.price).filter(p => typeof p === 'number' && isFinite(p) && p > 0);
   } else {
     prices = filteredAds.map(ad => ad.price).filter(p => typeof p === 'number' && isFinite(p) && p > 0);
@@ -172,9 +162,7 @@ async function fetchAndProcessPrice(fiat, tradeType) {
     price: price,
     timestamp: timestamp
   }));
-  if (IS_DEV) {
-    console.log(`[FETCH] Prices processed for ${fiat} ${tradeType}:`, medianPrice, `(${limitedPrices.length} prices)`);
-  }
+  log(`[FETCH] Prices processed for ${fiat} ${tradeType}:`, medianPrice, `(${limitedPrices.length} prices)`);
   return { medianPrice, referencePrices };
 }
 async function fetchAllPricesFromAPI() {
@@ -187,9 +175,7 @@ async function fetchAllPricesFromAPI() {
     const remaining = Math.ceil((MIN_FETCH_INTERVAL - timeSinceLastFetch) / 1000);
     throw new Error(`Rate limit: Please wait ${remaining} seconds before refreshing again`);
   }
-  if (IS_DEV) {
-    console.log('[FETCH] Fetching all prices from Binance P2P');
-  }
+  log('[FETCH] Fetching all prices from Binance P2P');
   try {
     const [arsBuyData, arsSellData, bobBuyData, bobSellData] = await Promise.all([
       fetchAndProcessPrice('ARS', 'BUY'),
@@ -214,72 +200,83 @@ async function fetchAllPricesFromAPI() {
     setCache('ARS_SELL', arsSell);
     setCache('BOB_BUY', bobBuy);
     setCache('BOB_SELL', bobSell);
-    if (IS_DEV) {
-      console.log('[CACHE] Cache updated with new snapshot');
-    }
+    log('[CACHE] Cache updated with new snapshot');
     updatePricesState(arsBuy, arsSell, bobBuy, bobSell);
     referencePricesState.ars_buy = arsBuyData.referencePrices;
     referencePricesState.ars_sell = arsSellData.referencePrices;
     referencePricesState.bob_buy = bobBuyData.referencePrices;
     referencePricesState.bob_sell = bobSellData.referencePrices;
     referencePricesState.timestamp = new Date();
-    if (IS_DEV) {
-      console.log('[STATE] ReferencePricesState updated');
-    }
+    log('[STATE] ReferencePricesState updated');
     window.currentReferencePrices = referencePricesState;
     lastFetchTimestamp = Date.now();
     const now = Date.now();
     updatePricesTimestamp(now);
-    updateCacheState(CONFIG.CACHE_TTL / 1000, now);
+    const cacheTTLSeconds = Math.floor(CONFIG.CACHE_TTL / 1000);
+    updateCacheState(cacheTTLSeconds, now);
+    updateCacheStatusBadge(cacheTTLSeconds, new Date(now));
+    startCacheBadgeUpdates();
     return { arsBuy, arsSell, bobBuy, bobSell };
-  } catch (error) {
-    if (IS_DEV) {
-      console.error('[FETCH] Error in fetchAllPricesFromAPI:', error);
-    }
-    throw error;
+  } catch (err) {
+    error('[FETCH] Error in fetchAllPricesFromAPI:', err);
+    throw err;
   }
 }
 async function loadPrices(forceRefresh = false) {
   if (forceRefresh) {
-    if (IS_DEV) {
-      console.warn('[SECURITY] loadPrices called with forceRefresh=true - this should not happen');
-    }
+    warn('[SECURITY] loadPrices called with forceRefresh=true - this should not happen');
     return;
   }
-  const loadedFromCache = loadPricesStateFromCache();
-  if (loadedFromCache) {
-    if (IS_DEV) {
-      console.log('[CACHE] Loaded prices from cache');
+    const loadedFromCache = loadPricesStateFromCache();
+    if (loadedFromCache) {
+      log('[CACHE] Loaded prices from cache');
+      renderAllUI();
+      refreshPricesUsed();
+      const direction = getDirection();
+      if (pricesState.timestamp) {
+        const cacheAge = Date.now() - pricesState.timestamp.getTime();
+        const cacheTTL = CONFIG.CACHE_TTL;
+        const remaining = Math.max(0, Math.floor((cacheTTL - cacheAge) / 1000));
+        updateCacheStatusBadge(remaining, pricesState.timestamp);
+        if (remaining > 0) {
+          startCacheBadgeUpdates();
+        }
+      } else {
+        updateCacheStatusBadge(null, null);
+      }
+    } else {
+      updateCacheStatusBadge(null, null);
+      log('[CACHE] Cache empty or expired - waiting for manual refresh');
+      setError(null, 'NO_DATA');
+      hideReferenceTable();
+      refreshPricesUsed();
     }
-    renderAllUI();
-    refreshPricesUsed();
-    const direction = getDirection();
-  } else {
-    if (IS_DEV) {
-      console.log('[CACHE] Cache empty or expired - waiting for manual refresh');
-    }
-    setError('Actualizá los precios');
-    hideReferenceTable();
-    refreshPricesUsed();
-  }
 }
 async function calculateConversion() {
   const amount = getAmount();
   const direction = getDirection();
-  if (typeof amount !== 'number' || !isFinite(amount) || amount <= 0) {
+  if (typeof amount !== 'number' || !isFinite(amount) || isNaN(amount) || amount <= 0) {
     setResult('—');
     return;
   }
   if (amount > 1000000000000) {
-    setError('Monto inválido');
+    setError(null, 'INVALID_DATA');
     return;
   }
   if (amount === 0) {
     setResult('—');
     return;
   }
-  if (!pricesState.ars.buy || !pricesState.ars.sell || !pricesState.bob.buy || !pricesState.bob.sell) {
-    setError('Actualizá los precios');
+  const arsBuy = pricesState.ars?.buy;
+  const arsSell = pricesState.ars?.sell;
+  const bobBuy = pricesState.bob?.buy;
+  const bobSell = pricesState.bob?.sell;
+  if (!arsBuy || !arsSell || !bobBuy || !bobSell ||
+      typeof arsBuy !== 'number' || !isFinite(arsBuy) || isNaN(arsBuy) ||
+      typeof arsSell !== 'number' || !isFinite(arsSell) || isNaN(arsSell) ||
+      typeof bobBuy !== 'number' || !isFinite(bobBuy) || isNaN(bobBuy) ||
+      typeof bobSell !== 'number' || !isFinite(bobSell) || isNaN(bobSell)) {
+    setError(null, 'NO_DATA');
     return;
   }
   setLoading(true);
@@ -295,7 +292,7 @@ async function calculateConversion() {
     } else {
       throw new Error('Invalid direction');
     }
-    if (typeof result !== 'number' || !isFinite(result) || result <= 0) {
+    if (typeof result !== 'number' || !isFinite(result) || isNaN(result) || result <= 0) {
       throw new Error('Invalid calculation result');
     }
     const formatted = formatNumber(result, 2);
@@ -305,29 +302,21 @@ async function calculateConversion() {
     } else {
       updateResultPrices(pricesState.bob.buy, pricesState.ars.sell, direction);
     }
-  } catch (error) {
-    if (IS_DEV) {
-      console.error('[CALC] Error calculating conversion:', error);
-    }
-    setError('Error en cálculo');
+  } catch (err) {
+    error('[CALC] Error calculating conversion:', err);
+    setError(null, 'INVALID_DATA');
   } finally {
     setLoading(false);
   }
 }
 export async function refreshPrices() {
-  if (IS_DEV) {
-    console.log('[SECURITY] Refresh clicked by user');
-  }
+  log('[SECURITY] Refresh clicked by user');
   if (isRefreshing) {
-    if (IS_DEV) {
-      console.warn('[SECURITY] Refresh already in progress, ignoring click');
-    }
+    warn('[SECURITY] Refresh already in progress, ignoring click');
     return;
   }
   if (isCooldown) {
-    if (IS_DEV) {
-      console.warn('[SECURITY] Cooldown active, ignoring click');
-    }
+    warn('[SECURITY] Cooldown active, ignoring click');
     return;
   }
   enableFetchForUserAction();
@@ -347,13 +336,10 @@ export async function refreshPrices() {
     updateCacheState(0, null);
     updatePricesTimestamp(null);
     refreshPricesUsed();
-    if (IS_DEV) {
-      console.log('[FETCH] Fetching prices from Binance P2P');
-    }
+    log('[FETCH] Fetching prices from Binance P2P');
     await fetchAllPricesFromAPI();
-    if (IS_DEV) {
-      console.log('[FETCH] Prices updated successfully');
-    }
+    log('[FETCH] Prices updated successfully');
+    setRefreshButtonSuccess();
     showSuccessToast('¡Ya puedes convertir!');
     renderAllUI();
     refreshPricesUsed();
@@ -379,40 +365,31 @@ export async function refreshPrices() {
     }, 1000);
     setTimeout(() => {
       hideReferenceTable();
-      if (IS_DEV) {
-        console.log('[UI] Tabla y precio de referencia ocultados después de 60 segundos');
-      }
+      log('[UI] Tabla y precio de referencia ocultados después de 60 segundos');
     }, countdownSeconds * 1000);
     startRefreshCountdown(countdownSeconds, () => {
-      if (IS_DEV) {
-        console.log('[SECURITY] Cooldown completed, button unlocked');
-      }
+      log('[SECURITY] Cooldown completed, button unlocked');
       isCooldown = false;
       updateCooldownState(0);
       clearInterval(cooldownInterval);
     });
-  } catch (error) {
-    if (IS_DEV) {
-      console.error('[FETCH] Error refreshing prices:', error);
-    }
-    const errorMessage = error.message || 'Error al actualizar';
-    if (errorMessage.includes('Rate limit')) {
-      const remainingMatch = errorMessage.match(/(\d+)\s*seconds?/);
-      if (remainingMatch) {
-        setError(`Espera ${remainingMatch[1]}s`);
-      } else {
-        setError('Espera un momento');
-      }
+  } catch (err) {
+    error('[FETCH] Error refreshing prices:', err);
+    const errorMessage = err.message || '';
+    if (errorMessage.includes('Rate limit') || errorMessage.includes('429')) {
+      setError(null, 'RATE_LIMIT');
+    } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+      setError(null, 'NETWORK_ERROR');
+    } else if (errorMessage.includes('Invalid') || errorMessage.includes('parse')) {
+      setError(null, 'INVALID_DATA');
     } else {
-      setError('Error. Intentá nuevamente');
+      setError(null, 'FETCH_ERROR');
     }
     isCooldown = false;
     const cached = loadPricesStateFromCache();
     if (cached) {
       renderAllUI();
-      if (IS_DEV) {
-        console.log('[CACHE] Restored prices from cache after error');
-      }
+      log('[CACHE] Restored prices from cache after error');
     }
   } finally {
     disableFetchAfterOperation();
@@ -427,9 +404,7 @@ export async function refreshPrices() {
   }
 }
 async function init() {
-  if (IS_DEV) {
-    console.log('[INIT] Initializing P2P Panel');
-  }
+  log('[INIT] Initializing P2P Panel');
   disableFetchAfterOperation();
   function waitForView() {
     return new Promise((resolve) => {
@@ -493,9 +468,7 @@ async function init() {
   } else {
     setResult('—');
   }
-  if (IS_DEV) {
-    console.log('[INIT] Initialization complete - fetch disabled until user action');
-  }
+  log('[INIT] Initialization complete - fetch disabled until user action');
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);

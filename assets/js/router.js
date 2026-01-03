@@ -1,4 +1,5 @@
 import { loadHTML, waitForElement, emitViewReady } from './view-loader.js';
+import { log, warn, error } from './logger.js';
 const ROUTES = {
   '/': 'converter',
   '/references': 'references',
@@ -12,12 +13,9 @@ function getViewFromHash() {
   const hash = window.location.hash.slice(1) || '/';
   return ROUTES[hash] || 'converter';
 }
-const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 export function navigateTo(route) {
   if (!ROUTES[route]) {
-    if (IS_DEV) {
-      console.warn(`[Router] Ruta desconocida: ${route}`);
-    }
+    warn(`[Router] Ruta desconocida: ${route}`);
     return;
   }
   window.location.hash = route;
@@ -26,9 +24,7 @@ async function loadMainView() {
   if (!APP_CONTAINER) {
     APP_CONTAINER = document.getElementById('app-view-container');
     if (!APP_CONTAINER) {
-      if (IS_DEV) {
-        console.error('[Router] app-view-container not found');
-      }
+      error('[Router] app-view-container not found');
       return;
     }
   }
@@ -81,19 +77,15 @@ async function loadMainView() {
         }
       }, 100);
     } else {
-      if (IS_DEV) {
-        console.error('[Router] Critical elements not found in converter panel', {
+      error('[Router] Critical elements not found in converter panel', {
           amount: !!amountElFallback,
           refresh: !!refreshBtnFallback,
           panel: !!panelFallback,
           containerHTML: APP_CONTAINER.innerHTML.substring(0, 200)
         });
-      }
     }
   } else {
-    if (IS_DEV) {
-      console.error('[Router] Failed to load converter.html');
-    }
+    error('[Router] Failed to load converter.html');
   }
 }
 async function loadReferencesView() {
@@ -113,9 +105,7 @@ async function loadStatusView() {
   }
   if (APP_CONTAINER) {
     APP_CONTAINER.innerHTML = '';
-    if (IS_DEV) {
-      console.warn('[Router] Status view no disponible');
-    }
+    warn('[Router] Status view no disponible');
   }
 }
 export async function loadSettingsView() {
@@ -131,15 +121,11 @@ export async function loadSettingsView() {
       window.dispatchEvent(new CustomEvent('settings-view-ready'));
       return true;
     } else {
-      if (IS_DEV) {
-        console.error('[Router] Failed to load settings.html');
-      }
+      error('[Router] Failed to load settings.html');
       return false;
     }
   } else {
-    if (IS_DEV) {
-      console.error('[Router] SETTINGS_CONTAINER not found');
-    }
+    error('[Router] SETTINGS_CONTAINER not found');
     return false;
   }
 }
@@ -173,7 +159,7 @@ export function initRouter() {
     }));
     route();
   } else {
-    console.error('[Router] app-view-container not found');
+    error('[Router] app-view-container not found');
   }
   window.addEventListener('hashchange', route);
 }

@@ -20,13 +20,6 @@ function applyTheme(theme) {
   });
   updateThemeLabel(theme);
   syncRadioButtons();
-  updateThemeIndicator(theme);
-}
-function updateThemeIndicator(theme) {
-  const indicatorValue = document.getElementById('theme-indicator-value');
-  if (indicatorValue) {
-    indicatorValue.textContent = theme === 'dark' ? 'Oscuro' : 'Claro';
-  }
 }
 function updateThemeLabel(theme) {
   const label = document.getElementById('theme-label');
@@ -89,7 +82,6 @@ export function initTheme() {
   window.addEventListener('settings-view-ready', () => {
     updateThemeLabel(currentTheme);
     syncRadioButtons();
-    updateThemeIndicator(currentTheme);
     const darkRadio = document.getElementById('theme-dark');
     const lightRadio = document.getElementById('theme-light');
     if (darkRadio && lightRadio) {

@@ -69,12 +69,6 @@ export function calculatePercentageDiff(best, median) {
   }
   return ((best - median) / median) * 100;
 }
-export function getBestPrice(prices) {
-  if (!Array.isArray(prices) || prices.length === 0) {
-    return 0;
-  }
-  return Math.min(...prices);
-}
 export function filterAds(ads, minMonthOrders = 50, minFinishRate = 95) {
   if (!Array.isArray(ads) || ads.length === 0) {
     return [];
@@ -104,19 +98,4 @@ export function removeOutliers(prices) {
     return sorted;
   }
   return sorted.slice(1, -1);
-}
-export function filterAndProcessAds(ads, minMonthOrders = 50, minFinishRate = 95) {
-  if (!Array.isArray(ads) || ads.length === 0) {
-    return [];
-  }
-  const filtered = filterAds(ads, minMonthOrders, minFinishRate);
-  if (filtered.length === 0) {
-    return ads.map(ad => ad.price);
-  }
-  const prices = filtered.map(ad => ad.price);
-  const withoutOutliers = removeOutliers(prices);
-  if (withoutOutliers.length === 0) {
-    return prices;
-  }
-  return withoutOutliers;
 }

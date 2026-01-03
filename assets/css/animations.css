@@ -1,0 +1,85 @@
+:root {
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-fast: 150ms;
+  --animation-base: 250ms;
+  --animation-slow: 300ms;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rotate180 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes successPulse {
+  0% {
+    background: var(--converter-accent);
+  }
+  50% {
+    background: var(--accent-buy);
+  }
+  100% {
+    background: var(--converter-accent);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp var(--animation-base) var(--animation-easing);
+}
+
+.fade-in {
+  animation: fadeIn var(--animation-base) var(--animation-easing);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface-3) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+

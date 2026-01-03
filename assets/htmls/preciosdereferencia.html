@@ -1,7 +1,7 @@
 <section class="app-card app-card-references" id="reference-prices-panel" data-view="references">
   
-  <button class="reference-toggle-btn" id="reference-toggle-btn" type="button" aria-expanded="false" data-action="toggle-reference">
-    <span class="reference-toggle-text">Ver precios de referencia</span>
+  <button class="btn btn-secondary reference-toggle-btn" id="reference-toggle-btn" type="button" aria-expanded="false" data-action="toggle-reference">
+    <span class="reference-toggle-text">Tabla de referencia</span>
     <svg class="reference-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="6 9 12 15 18 9"></polyline>
     </svg>
@@ -19,15 +19,15 @@
       <div class="filter-group">
         <span class="filter-label">Mercado:</span>
         <div class="filter-buttons">
-          <button class="filter-btn market-filter active" data-market="ARS" id="filter-market-ars" type="button">ARS</button>
-          <button class="filter-btn market-filter" data-market="BOB" id="filter-market-bob" type="button">BOB</button>
+          <button class="btn btn-toggle filter-btn market-filter active" data-market="ARS" id="filter-market-ars" type="button">ARS</button>
+          <button class="btn btn-toggle filter-btn market-filter" data-market="BOB" id="filter-market-bob" type="button">BOB</button>
         </div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Tipo:</span>
         <div class="filter-buttons">
-          <button class="filter-btn side-filter buy-filter active" data-side="BUY" id="filter-side-buy" type="button">BUY</button>
-          <button class="filter-btn side-filter sell-filter" data-side="SELL" id="filter-side-sell" type="button">SELL</button>
+          <button class="btn btn-toggle filter-btn side-filter buy-filter active" data-side="BUY" id="filter-side-buy" type="button">BUY</button>
+          <button class="btn btn-toggle filter-btn side-filter sell-filter" data-side="SELL" id="filter-side-sell" type="button">SELL</button>
         </div>
       </div>
     </div>

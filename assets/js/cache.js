@@ -22,12 +22,3 @@ export function setCache(key, data) {
 export function clearCache() {
   cache.clear();
 }
-export function cleanExpiredCache() {
-  const now = Date.now();
-  for (const [key, cached] of cache.entries()) {
-    const age = now - cached.timestamp;
-    if (age > CONFIG.CACHE_TTL) {
-      cache.delete(key);
-    }
-  }
-}

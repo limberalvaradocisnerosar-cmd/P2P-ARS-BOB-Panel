@@ -1,3 +1,5 @@
+import { error } from './logger.js';
+
 let isSettingsOpen = false;
 function connectSettingsTrigger() {
   const trigger = document.getElementById('settings-trigger');
@@ -53,48 +55,33 @@ async function openSettingsPanel() {
     const content = settingsContent.innerHTML.trim();
     const hasRealContent = content.length > 200 && content.includes('settings-close');
     if (!hasRealContent) {
+      settingsContent.innerHTML = '<div class="settings-loading-state"><div class="settings-loading-spinner"></div><span>Cargando configuración…</span></div>';
+      const minLoadTime = new Promise(resolve => setTimeout(resolve, 300));
       import('./router.js').then(({ loadSettingsView }) => {
-        loadSettingsView().then(() => {
+        Promise.all([loadSettingsView(), minLoadTime]).then(() => {
           reconnectSettingsListeners();
           updateSettingsPanelState();
         });
       });
     } else {
       reconnectSettingsListeners();
-      updateSettingsPanelState();
     }
   }
 }
+let usedPricesLoaded = false;
+let systemStateLoaded = false;
+
 function updateSettingsPanelState() {
-  import('./ui-state.js').then((module) => {
-    if (module.refreshPricesUsed) {
-      const pricesContent = document.getElementById('prices-accordion-content');
-      if (pricesContent && pricesContent.style.display !== 'none') {
-        module.refreshPricesUsed();
-      }
-    }
-    if (module.renderSystemStatus) {
-      const systemContent = document.getElementById('system-accordion-content');
-      if (systemContent && systemContent.style.display !== 'none') {
-        module.renderSystemStatus();
-      }
-    }
-  }).catch(err => {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.warn('[Settings] Error updating panel state:', err);
-    }
-  });
 }
 function reconnectSettingsListeners() {
   const closeBtn = document.getElementById('settings-close');
   const overlay = document.getElementById('settings-overlay');
-  if (closeBtn) {
-    closeBtn.removeEventListener('click', handleCloseClick);
+  if (closeBtn && closeBtn.dataset.listenerAttached !== 'true') {
+    closeBtn.dataset.listenerAttached = 'true';
     closeBtn.addEventListener('click', handleCloseClick);
   }
-  if (overlay) {
-    overlay.removeEventListener('click', handleOverlayClick);
+  if (overlay && overlay.dataset.listenerAttached !== 'true') {
+    overlay.dataset.listenerAttached = 'true';
     overlay.addEventListener('click', handleOverlayClick);
   }
   setupCollapsableSections();
@@ -110,6 +97,54 @@ function handleOverlayClick(e) {
   e.stopPropagation();
   closeSettingsPanel();
 }
+function loadUsedPricesIfNeeded() {
+  if (usedPricesLoaded) return;
+  usedPricesLoaded = true;
+  const pricesContent = document.getElementById('prices-used-content');
+  if (!pricesContent) return;
+  const hasContent = pricesContent.children.length > 0 && 
+                     !pricesContent.querySelector('.settings-loading-state') &&
+                     !pricesContent.querySelector('.prices-empty-message');
+  if (hasContent) return;
+  pricesContent.innerHTML = '<div class="settings-loading-state"><div class="settings-loading-spinner"></div><span>Cargando…</span></div>';
+  setTimeout(() => {
+    import('./ui-state.js').then((module) => {
+      if (module.refreshPricesUsed) {
+        module.refreshPricesUsed();
+      }
+    }).catch(() => {});
+  }, 0);
+}
+
+function loadSystemStateIfNeeded() {
+  if (systemStateLoaded) return;
+  systemStateLoaded = true;
+  const systemContent = document.getElementById('system-accordion-content');
+  if (!systemContent) return;
+  const hasContent = systemContent.querySelector('.system-definition-list') && 
+                     !systemContent.querySelector('.settings-loading-state');
+  if (hasContent) {
+    import('./ui-state.js').then((module) => {
+      if (module.renderSystemStatus) {
+        module.renderSystemStatus();
+      }
+    }).catch(() => {});
+    return;
+  }
+  const originalContent = systemContent.innerHTML;
+  systemContent.innerHTML = '<div class="settings-loading-state"><div class="settings-loading-spinner"></div><span>Cargando…</span></div>';
+  setTimeout(() => {
+    import('./ui-state.js').then((module) => {
+      if (module.renderSystemStatus) {
+        systemContent.innerHTML = originalContent;
+        module.renderSystemStatus();
+      }
+    }).catch(() => {
+      systemContent.innerHTML = originalContent;
+    });
+  }, 0);
+}
+
 function setupCollapsableSections() {
   if (window.accordionsConfigured) {
     return;
@@ -145,31 +180,11 @@ function setupCollapsableSections() {
           closeAllSections(headerId);
           header.setAttribute('aria-expanded', 'true');
           content.style.display = 'block';
-          requestAnimationFrame(() => {
-            if (headerId === 'prices-accordion-header') {
-              import('./ui-state.js').then((module) => {
-                if (module.refreshPricesUsed) {
-                  module.refreshPricesUsed();
-                }
-              }).catch(err => {
-                const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-                if (IS_DEV) {
-                  console.warn('[Settings] Error loading ui-state:', err);
-                }
-              });
-            } else if (headerId === 'system-accordion-header') {
-              import('./ui-state.js').then((module) => {
-                if (module.renderSystemStatus) {
-                  module.renderSystemStatus();
-                }
-              }).catch(err => {
-                const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-                if (IS_DEV) {
-                  console.warn('[Settings] Error loading ui-state:', err);
-                }
-              });
-            }
-          });
+          if (headerId === 'prices-accordion-header') {
+            loadUsedPricesIfNeeded();
+          } else if (headerId === 'system-accordion-header') {
+            loadSystemStateIfNeeded();
+          }
         }
       });
       header.dataset.accordionConfigured = 'true';
@@ -181,10 +196,7 @@ function closeSettingsPanel() {
   const panel = document.getElementById('settings-panel');
   const trigger = document.getElementById('settings-trigger');
   if (!panel) {
-    const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (IS_DEV) {
-      console.error('[Settings] Panel no encontrado al cerrar');
-    }
+    error('[Settings] Panel no encontrado al cerrar');
     return;
   }
   panel.classList.remove('open');
@@ -194,9 +206,12 @@ function closeSettingsPanel() {
   isSettingsOpen = false;
   document.body.style.overflow = '';
 }
-async function toggleTheme() {
-  const { toggleTheme: toggleThemeFromModule } = await import('./theme.js');
-  toggleThemeFromModule();
+function toggleTheme() {
+  import('./theme.js').then((module) => {
+    if (module.toggleTheme) {
+      module.toggleTheme();
+    }
+  }).catch(() => {});
 }
 function loadTheme() {
   const savedTheme = localStorage.getItem('p2p-theme') || 'light';
@@ -216,19 +231,6 @@ let settingsState = {
   cooldownRemaining: 0,
   pricesTimestamp: null
 };
-export function updateCacheStatus(secondsRemaining, lastUpdate) {
-  settingsState.cacheTTL = secondsRemaining;
-  settingsState.lastUpdate = lastUpdate;
-  renderSettingsState();
-}
-export function updateCooldownStatus(secondsRemaining) {
-  settingsState.cooldownRemaining = secondsRemaining;
-  renderSettingsState();
-}
-export function updatePricesTimestamp(timestamp) {
-  settingsState.pricesTimestamp = timestamp;
-  renderSettingsState();
-}
 function renderSettingsState() {
   const cacheStatusText = document.getElementById('cache-status-text');
   const cacheTime = document.getElementById('cache-time');

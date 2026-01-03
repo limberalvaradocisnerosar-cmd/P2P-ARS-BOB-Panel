@@ -1,4 +1,5 @@
 import { formatNumber, calculateSpread, calculatePercentageDiff, median } from './calc.js';
+import { log, warn } from './logger.js';
 function setPanelState(state) {
   const panel = document.getElementById('conversion-panel');
   if (panel) {
@@ -45,12 +46,27 @@ export function setLoading(state) {
     resultElement.classList.remove('loading');
   }
 }
-export function setError(message) {
+const ERROR_MESSAGES = {
+  NO_DATA: 'Aún no se cargaron precios. Hacé clic en "Actualizar precios" para comenzar.',
+  CACHE_EXPIRED: 'Los datos expiraron. Actualizá los precios para continuar.',
+  NETWORK_ERROR: 'No se pudo conectar. Verificá tu conexión e intentá de nuevo.',
+  RATE_LIMIT: 'Esperá 60 segundos antes de actualizar nuevamente.',
+  FETCH_ERROR: 'No se pudieron obtener los precios en este momento. Intentá más tarde.',
+  INVALID_DATA: 'Los datos recibidos no son válidos. Intentá actualizar nuevamente.'
+};
+
+export function setError(message, errorType = null) {
   const resultElement = document.getElementById('result');
   if (!resultElement) {
     return;
   }
-  resultElement.textContent = message || 'Error al obtener precios';
+  let displayMessage = message;
+  if (errorType && ERROR_MESSAGES[errorType]) {
+    displayMessage = ERROR_MESSAGES[errorType];
+  } else if (!message) {
+    displayMessage = ERROR_MESSAGES.NO_DATA;
+  }
+  resultElement.textContent = displayMessage;
   resultElement.classList.add('error');
   resultElement.removeAttribute('data-empty');
   setResultFieldState('error');
@@ -60,7 +76,7 @@ export function setError(message) {
       setPanelState('idle');
       setResultFieldState('idle');
     }
-  }, 3000);
+  }, 5000);
 }
 export function getAmount() {
   const amountInput = document.getElementById('amount');
@@ -178,17 +194,31 @@ function updateCurrencyBadge() {
       ? 'assets/icons/argentina.svg' 
       : 'assets/icons/bolivia.svg';
     fromFlagImg.alt = direction === 'ARS_BOB' ? 'Argentina' : 'Bolivia';
+    fromFlagImg.setAttribute('draggable', 'false');
+    fromFlagImg.style.userSelect = 'none';
+    fromFlagImg.style.webkitUserDrag = 'none';
   }
   if (toFlagImg) {
     toFlagImg.src = direction === 'ARS_BOB' 
       ? 'assets/icons/bolivia.svg' 
       : 'assets/icons/argentina.svg';
     toFlagImg.alt = direction === 'ARS_BOB' ? 'Bolivia' : 'Argentina';
+    toFlagImg.setAttribute('draggable', 'false');
+    toFlagImg.style.userSelect = 'none';
+    toFlagImg.style.webkitUserDrag = 'none';
   }
   const fromFlag = document.getElementById('from-flag');
   const toFlag = document.getElementById('to-flag');
-  if (fromFlag) fromFlag.style.display = 'flex';
-  if (toFlag) toFlag.style.display = 'flex';
+  if (fromFlag) {
+    fromFlag.style.display = 'flex';
+    fromFlag.style.userSelect = 'none';
+    fromFlag.setAttribute('draggable', 'false');
+  }
+  if (toFlag) {
+    toFlag.style.display = 'flex';
+    toFlag.style.userSelect = 'none';
+    toFlag.setAttribute('draggable', 'false');
+  }
 }
 export function updateResultPrices(priceFrom, priceTo, direction) {
 }
@@ -302,32 +332,56 @@ export function setRefreshButtonLoading(loading, countdownSeconds = null) {
   const refreshBtn = document.getElementById('refresh-btn');
   const buttonText = refreshBtn?.querySelector('.ui-button-text');
   const buttonLoader = refreshBtn?.querySelector('.ui-button-loader');
+  const countdownElement = refreshBtn?.querySelector('.ui-button-countdown');
   if (!refreshBtn) {
     return;
   }
   if (loading) {
     refreshBtn.disabled = true;
-    refreshBtn.classList.add('loading');
+    refreshBtn.classList.add('is-loading');
+    refreshBtn.style.cursor = 'not-allowed';
     if (buttonLoader) buttonLoader.style.display = 'inline-block';
     if (countdownSeconds !== null && countdownSeconds > 0) {
       if (buttonText) {
-        buttonText.textContent = `Espera ${countdownSeconds}s`;
+        buttonText.textContent = 'Actualizar precios';
+      }
+      if (countdownElement) {
+        countdownElement.textContent = `${countdownSeconds}s`;
+        countdownElement.style.display = 'inline-block';
       }
       setPanelState('cache');
     } else {
       if (buttonText) {
         buttonText.textContent = 'Actualizando...';
       }
+      if (countdownElement) {
+        countdownElement.style.display = 'none';
+      }
       setPanelState('loading');
     }
   } else {
     refreshBtn.disabled = false;
-    refreshBtn.classList.remove('loading');
+    refreshBtn.classList.remove('is-loading', 'success');
+    refreshBtn.style.cursor = '';
     if (buttonLoader) buttonLoader.style.display = 'none';
+    if (countdownElement) {
+      countdownElement.style.display = 'none';
+      countdownElement.textContent = '';
+    }
     if (buttonText) {
       buttonText.textContent = 'Actualizar precios';
     }
   }
+}
+
+export function setRefreshButtonSuccess() {
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (!refreshBtn) return;
+  refreshBtn.classList.remove('is-loading');
+  refreshBtn.classList.add('success');
+  setTimeout(() => {
+    refreshBtn.classList.remove('success');
+  }, 300);
 }
 export function startRefreshCountdown(seconds, onComplete) {
   if (refreshCountdownInterval) {
@@ -356,13 +410,93 @@ export function stopRefreshCountdown() {
   }
   setRefreshButtonLoading(false);
 }
+
+let cacheBadgeUpdateInterval = null;
+
+export function updateCacheStatusBadge(secondsRemaining, timestamp = null) {
+  const badge = document.getElementById('cache-status-badge');
+  const dot = badge?.querySelector('.cache-status-dot');
+  const text = badge?.querySelector('.cache-status-text');
+  
+  if (!badge || !dot || !text) {
+    return;
+  }
+
+  const CACHE_TTL = 60;
+  const WARNING_THRESHOLD = 15;
+
+  if (secondsRemaining === null || secondsRemaining <= 0 || !timestamp) {
+    badge.setAttribute('data-state', 'expired');
+    badge.classList.remove('cache-valid', 'cache-warning', 'cache-expired');
+    badge.classList.add('cache-expired');
+    dot.setAttribute('aria-label', 'Datos vencidos');
+    text.textContent = 'Sin datos';
+    return;
+  }
+
+  if (secondsRemaining > WARNING_THRESHOLD) {
+    badge.setAttribute('data-state', 'valid');
+    badge.classList.remove('cache-warning', 'cache-expired');
+    badge.classList.add('cache-valid');
+    dot.setAttribute('aria-label', 'Datos válidos');
+    text.textContent = `${secondsRemaining}s`;
+  } else if (secondsRemaining > 0) {
+    badge.setAttribute('data-state', 'warning');
+    badge.classList.remove('cache-valid', 'cache-expired');
+    badge.classList.add('cache-warning');
+    dot.setAttribute('aria-label', 'Datos próximos a vencer');
+    text.textContent = `${secondsRemaining}s`;
+  } else {
+    badge.setAttribute('data-state', 'expired');
+    badge.classList.remove('cache-valid', 'cache-warning');
+    badge.classList.add('cache-expired');
+    dot.setAttribute('aria-label', 'Datos vencidos');
+    text.textContent = 'Vencido';
+  }
+}
+
+export function startCacheBadgeUpdates() {
+  if (cacheBadgeUpdateInterval) {
+    clearInterval(cacheBadgeUpdateInterval);
+  }
+  
+  cacheBadgeUpdateInterval = setInterval(() => {
+    const pricesState = window.getPricesState?.();
+    if (!pricesState || !pricesState.timestamp) {
+      updateCacheStatusBadge(null, null);
+      return;
+    }
+    
+    const cacheAge = Date.now() - pricesState.timestamp.getTime();
+    const CACHE_TTL = 60000;
+    const remaining = Math.max(0, Math.floor((CACHE_TTL - cacheAge) / 1000));
+    
+    updateCacheStatusBadge(remaining, pricesState.timestamp);
+    
+    if (remaining <= 0) {
+      clearInterval(cacheBadgeUpdateInterval);
+      cacheBadgeUpdateInterval = null;
+    }
+  }, 1000);
+}
+
+export function stopCacheBadgeUpdates() {
+  if (cacheBadgeUpdateInterval) {
+    clearInterval(cacheBadgeUpdateInterval);
+    cacheBadgeUpdateInterval = null;
+  }
+}
 export function renderInfoCard(priceData) {
   const infoCard = document.getElementById('info-card');
   if (!infoCard) {
     return;
   }
-  if (!priceData || Object.keys(priceData).length === 0) {
-    infoCard.innerHTML = '<p class="info-empty">Los datos de precios se cargarán automáticamente</p>';
+  if (!priceData || typeof priceData !== 'object' || Object.keys(priceData).length === 0) {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'info-empty';
+    emptyMsg.textContent = 'Los datos de precios se cargarán automáticamente';
+    infoCard.textContent = '';
+    infoCard.appendChild(emptyMsg);
     return;
   }
   const formatPrice = (value) => {
@@ -454,125 +588,194 @@ export function resetReferenceTableUIState() {
     side: 'BUY'
   };
   updateFilterButtons();
-  const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  if (IS_DEV && typeof window !== 'undefined' && window.console) {
-    console.log('[UI] Reference table UI state reset to:', referenceTableUIState);
-  }
+  log('[UI] Reference table UI state reset to:', referenceTableUIState);
 }
 function updateFilterButtons() {
   const arsBtn = document.getElementById('filter-market-ars');
   const bobBtn = document.getElementById('filter-market-bob');
   if (arsBtn && bobBtn) {
     if (referenceTableUIState.market === 'ARS') {
-      arsBtn.classList.add('active');
-      bobBtn.classList.remove('active');
+      arsBtn.classList.add('active', 'is-active');
+      bobBtn.classList.remove('active', 'is-active');
     } else {
-      arsBtn.classList.remove('active');
-      bobBtn.classList.add('active');
+      arsBtn.classList.remove('active', 'is-active');
+      bobBtn.classList.add('active', 'is-active');
     }
   }
   const buyBtn = document.getElementById('filter-side-buy');
   const sellBtn = document.getElementById('filter-side-sell');
   if (buyBtn && sellBtn) {
     if (referenceTableUIState.side === 'BUY') {
-      buyBtn.classList.add('active');
-      sellBtn.classList.remove('active');
+      buyBtn.classList.add('active', 'is-active');
+      sellBtn.classList.remove('active', 'is-active');
     } else {
-      buyBtn.classList.remove('active');
-      sellBtn.classList.add('active');
+      buyBtn.classList.remove('active', 'is-active');
+      sellBtn.classList.add('active', 'is-active');
     }
   }
 }
+function sanitizePrice(value) {
+  if (typeof value !== 'number' || !isFinite(value) || isNaN(value) || value <= 0) {
+    return null;
+  }
+  return value;
+}
+
+function formatTimestamp(timestamp) {
+  if (!timestamp || (typeof timestamp !== 'number' && !(timestamp instanceof Date))) {
+    return '—';
+  }
+  const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+  if (isNaN(date.getTime())) {
+    return '—';
+  }
+  return date.toLocaleString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+}
+
+function createTableRow(item, index, market, side, sideColor) {
+  const tr = document.createElement('tr');
+  
+  const tdPrice = document.createElement('td');
+  tdPrice.className = 'price-cell';
+  tdPrice.style.color = sideColor;
+  const price = sanitizePrice(item?.price);
+  tdPrice.textContent = price !== null ? formatNumber(price, 2) : '—';
+  
+  const tdSide = document.createElement('td');
+  tdSide.className = 'side-cell';
+  tdSide.style.color = sideColor;
+  tdSide.textContent = side;
+  
+  const tdMarket = document.createElement('td');
+  tdMarket.className = 'market-cell';
+  tdMarket.textContent = market;
+  
+  const tdTimestamp = document.createElement('td');
+  tdTimestamp.className = 'timestamp-cell';
+  tdTimestamp.textContent = formatTimestamp(item?.timestamp);
+  
+  tr.appendChild(tdPrice);
+  tr.appendChild(tdSide);
+  tr.appendChild(tdMarket);
+  tr.appendChild(tdTimestamp);
+  return tr;
+}
+
 export function renderFilteredReferenceTable(referencePrices, uiState) {
   const referenceContent = document.getElementById('reference-prices-content');
   if (!referenceContent) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('[UI] Reference table: Container not found');
-    }
+    warn('[UI] Reference table: Container not found');
     return;
   }
-  if (!referencePrices) {
-    referenceContent.innerHTML = '<p class="reference-empty">No hay precios de referencia cargados aún</p>';
+  if (!referencePrices || typeof referencePrices !== 'object') {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'reference-empty';
+    emptyMsg.textContent = 'No hay precios de referencia cargados aún';
+    referenceContent.textContent = '';
+    referenceContent.appendChild(emptyMsg);
     return;
   }
   const formatPrice = (value) => {
-    if (!value || value <= 0) return '—';
-    return formatNumber(value, 2);
+    const sanitized = sanitizePrice(value);
+    if (sanitized === null) return '—';
+    return formatNumber(sanitized, 2);
   };
-  const market = uiState.market.toLowerCase();
-  const side = uiState.side.toLowerCase();
-  const key = `${market}_${side}`;
-  const filteredPrices = referencePrices[key] || [];
-  const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  if (IS_DEV && typeof window !== 'undefined' && window.console) {
-    console.log('[UI] Rendering filtered reference price table');
-    console.log('[UI] Active market:', uiState.market);
-    console.log('[UI] Active side:', uiState.side);
-    console.log('[UI] Rows to render:', filteredPrices.length);
-  }
-  const sideColor = uiState.side === 'BUY' ? '#16a34a' : '#dc2626';
-  const sideColorLight = uiState.side === 'BUY' 
-    ? 'rgba(22, 163, 74, 0.1)' 
-    : 'rgba(220, 38, 38, 0.1)';
-  if (!filteredPrices || filteredPrices.length === 0) {
-    referenceContent.innerHTML = `
-      <div class="reference-table-container">
-        <table class="reference-table reference-table-${side.toLowerCase()}">
-          <thead>
-            <tr>
-              <th>Índice</th>
-              <th>Precio</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="2" class="reference-empty">No hay precios de referencia para esta selección</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    `;
+  const market = (uiState?.market || 'ARS').toLowerCase();
+  const side = (uiState?.side || 'BUY').toLowerCase();
+  if (market !== 'ars' && market !== 'bob') {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'reference-empty';
+    emptyMsg.textContent = 'Mercado inválido';
+    referenceContent.textContent = '';
+    referenceContent.appendChild(emptyMsg);
     return;
   }
-  let tableRows = '';
-  filteredPrices.forEach((item, index) => {
-    const price = item.price || 0;
-    tableRows += `
-      <tr>
-        <td class="index-cell">${index + 1}</td>
-        <td class="price-cell" style="color: ${sideColor};">${formatPrice(price)}</td>
-      </tr>
-    `;
-  });
-  referenceContent.innerHTML = `
-    <div class="reference-table-container">
-      <table class="reference-table reference-table-${side.toLowerCase()}">
-        <thead style="border-bottom: 2px solid ${sideColor};">
-          <tr>
-            <th>Índice</th>
-            <th style="color: ${sideColor};">Precio</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
-    </div>
-  `;
+  if (side !== 'buy' && side !== 'sell') {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'reference-empty';
+    emptyMsg.textContent = 'Tipo inválido';
+    referenceContent.textContent = '';
+    referenceContent.appendChild(emptyMsg);
+    return;
+  }
+  const key = `${market}_${side}`;
+  const filteredPrices = Array.isArray(referencePrices[key]) ? referencePrices[key] : [];
+  log('[UI] Rendering filtered reference price table');
+  log('[UI] Active market:', uiState.market);
+  log('[UI] Active side:', uiState.side);
+  log('[UI] Rows to render:', filteredPrices.length);
+  const sideColor = uiState.side === 'BUY' ? '#16a34a' : '#dc2626';
+  referenceContent.textContent = '';
+  const container = document.createElement('div');
+  container.className = 'reference-table-container';
+  
+  const table = document.createElement('table');
+  table.className = `reference-table reference-table-${side}`;
+  
+  const thead = document.createElement('thead');
+  thead.style.borderBottom = `2px solid ${sideColor}`;
+  const theadRow = document.createElement('tr');
+  
+  const thPrice = document.createElement('th');
+  thPrice.style.color = sideColor;
+  thPrice.textContent = 'Precio';
+  
+  const thSide = document.createElement('th');
+  thSide.style.color = sideColor;
+  thSide.textContent = 'Side';
+  
+  const thMarket = document.createElement('th');
+  thMarket.textContent = 'Market';
+  
+  const thTimestamp = document.createElement('th');
+  thTimestamp.textContent = 'Timestamp';
+  
+  theadRow.appendChild(thPrice);
+  theadRow.appendChild(thSide);
+  theadRow.appendChild(thMarket);
+  theadRow.appendChild(thTimestamp);
+  thead.appendChild(theadRow);
+  
+  const tbody = document.createElement('tbody');
+  
+  if (!filteredPrices || filteredPrices.length === 0) {
+    const emptyRow = document.createElement('tr');
+    const emptyCell = document.createElement('td');
+    emptyCell.colSpan = 4;
+    emptyCell.className = 'reference-empty';
+    emptyCell.textContent = 'No hay precios de referencia para esta selección';
+    emptyRow.appendChild(emptyCell);
+    tbody.appendChild(emptyRow);
+  } else {
+    filteredPrices.forEach((item, index) => {
+      if (!item || typeof item !== 'object') return;
+      const price = sanitizePrice(item.price);
+      if (price === null) return;
+      tbody.appendChild(createTableRow(item, index, uiState.market, uiState.side, sideColor));
+    });
+  }
+  
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  container.appendChild(table);
+  referenceContent.appendChild(container);
 }
 export function renderReferenceTable(referencePrices) {
   const referencePanel = document.getElementById('reference-prices-panel');
   const collapsableContent = document.getElementById('reference-collapsable-content');
   if (!referencePanel) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('[UI] Reference panel: Panel not found');
-    }
+    warn('[UI] Reference panel: Panel not found');
     return;
   }
   if (!collapsableContent) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('[UI] Reference panel: Content element not found');
-    }
+    warn('[UI] Reference panel: Content element not found');
     return;
   }
   referencePanel.style.display = 'block';
@@ -615,7 +818,11 @@ export function toggleReferenceContent() {
     } else {
       const referenceContent = document.getElementById('reference-prices-content');
       if (referenceContent) {
-        referenceContent.innerHTML = '<p class="reference-empty">No hay precios de referencia cargados aún. Actualizá los precios para ver la tabla.</p>';
+        const emptyMsg = document.createElement('p');
+        emptyMsg.className = 'reference-empty';
+        emptyMsg.textContent = 'No hay precios de referencia cargados aún. Actualizá los precios para ver la tabla.';
+        referenceContent.textContent = '';
+        referenceContent.appendChild(emptyMsg);
       }
     }
   }
@@ -632,10 +839,7 @@ export function setupReferenceFilters() {
         if (referencePrices) {
           renderFilteredReferenceTable(referencePrices, referenceTableUIState);
         }
-        const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        if (IS_DEV && typeof window !== 'undefined' && window.console) {
-          console.log('[UI] Reference table market changed to:', market);
-        }
+        log('[UI] Reference table market changed to:', market);
       }
     });
   });
@@ -650,10 +854,7 @@ export function setupReferenceFilters() {
         if (referencePrices) {
           renderFilteredReferenceTable(referencePrices, referenceTableUIState);
         }
-        const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        if (IS_DEV && typeof window !== 'undefined' && window.console) {
-          console.log('[UI] Reference table side changed to:', side);
-        }
+        log('[UI] Reference table side changed to:', side);
       }
     });
   });
