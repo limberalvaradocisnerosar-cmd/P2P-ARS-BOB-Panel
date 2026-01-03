@@ -238,11 +238,26 @@ async function loadPrices(forceRefresh = false) {
         const cacheTTL = CONFIG.CACHE_TTL;
         const remaining = Math.max(0, Math.floor((cacheTTL - cacheAge) / 1000));
         updateCacheStatusBadge(remaining, pricesState.timestamp);
+        updateCacheState(remaining, pricesState.timestamp);
+        updatePricesTimestamp(pricesState.timestamp.getTime());
         if (remaining > 0) {
           startCacheBadgeUpdates();
+          const countdownSeconds = remaining;
+          if (countdownSeconds > 0 && countdownSeconds < 60) {
+            isCooldown = true;
+            startRefreshCountdown(countdownSeconds, () => {
+              log('[SECURITY] Cooldown completed, button unlocked');
+              isCooldown = false;
+              updateCooldownState(0);
+            });
+          }
         }
       } else {
         updateCacheStatusBadge(null, null);
+      }
+      const amount = getAmount();
+      if (amount > 0 && typeof amount === 'number' && isFinite(amount)) {
+        await calculateConversion();
       }
     } else {
       updateCacheStatusBadge(null, null);

@@ -57,7 +57,7 @@ function renderStatusPanel() {
   const cooldownTime = document.getElementById('state-cooldown-time');
   if (cooldownTime) {
     if (stateData.cooldownRemaining > 0) {
-      cooldownTime.textContent = `${stateData.cooldownRemaining}s`;
+      cooldownTime.textContent = 'Activo';
     } else {
       cooldownTime.textContent = 'Disponible';
     }

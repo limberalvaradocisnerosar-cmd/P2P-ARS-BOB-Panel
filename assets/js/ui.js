@@ -362,7 +362,7 @@ export function setRefreshButtonLoading(loading, countdownSeconds = null) {
   } else {
     refreshBtn.disabled = false;
     refreshBtn.classList.remove('is-loading', 'success');
-    refreshBtn.style.cursor = '';
+    refreshBtn.style.cursor = 'pointer';
     if (buttonLoader) buttonLoader.style.display = 'none';
     if (countdownElement) {
       countdownElement.style.display = 'none';
@@ -376,11 +376,18 @@ export function setRefreshButtonLoading(loading, countdownSeconds = null) {
 
 export function setRefreshButtonSuccess() {
   const refreshBtn = document.getElementById('refresh-btn');
+  const buttonText = refreshBtn?.querySelector('.ui-button-text');
   if (!refreshBtn) return;
   refreshBtn.classList.remove('is-loading');
+  if (buttonText) {
+    buttonText.textContent = 'Actualizado';
+  }
   refreshBtn.classList.add('success');
   setTimeout(() => {
     refreshBtn.classList.remove('success');
+    if (buttonText) {
+      buttonText.textContent = 'Actualizar precios';
+    }
   }, 300);
 }
 export function startRefreshCountdown(seconds, onComplete) {
@@ -806,10 +813,16 @@ export function toggleReferenceContent() {
   }
   const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
   if (isExpanded) {
-    collapsableContent.style.display = 'none';
+    collapsableContent.setAttribute('data-expanded', 'false');
+    requestAnimationFrame(() => {
+      collapsableContent.style.display = 'none';
+    });
     toggleBtn.setAttribute('aria-expanded', 'false');
   } else {
     collapsableContent.style.display = 'block';
+    requestAnimationFrame(() => {
+      collapsableContent.setAttribute('data-expanded', 'true');
+    });
     toggleBtn.setAttribute('aria-expanded', 'true');
     const referencePrices = getCurrentReferencePrices();
     if (referencePrices) {
