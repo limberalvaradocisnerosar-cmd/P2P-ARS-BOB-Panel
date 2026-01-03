@@ -373,16 +373,10 @@ export function setRefreshButtonSuccess() {
   const buttonText = refreshBtn?.querySelector('.ui-button-text');
   if (!refreshBtn) return;
   refreshBtn.classList.remove('is-loading');
+  refreshBtn.classList.add('success');
   if (buttonText) {
     buttonText.textContent = 'Actualizado';
   }
-  refreshBtn.classList.add('success');
-  setTimeout(() => {
-    refreshBtn.classList.remove('success');
-    if (buttonText) {
-      buttonText.textContent = 'Actualizar precios';
-    }
-  }, 300);
 }
 export function startRefreshCountdown(seconds, onComplete) {
   if (refreshCountdownInterval) {
@@ -390,10 +384,14 @@ export function startRefreshCountdown(seconds, onComplete) {
   }
   let remaining = seconds;
   const refreshBtn = document.getElementById('refresh-btn');
+  const buttonText = refreshBtn?.querySelector('.ui-button-text');
   if (refreshBtn) {
     refreshBtn.disabled = true;
     refreshBtn.classList.add('cursor-not-allowed');
     refreshBtn.classList.remove('cursor-pointer');
+    if (buttonText) {
+      buttonText.textContent = 'Actualizado';
+    }
   }
   refreshCountdownInterval = setInterval(() => {
     remaining--;
@@ -411,7 +409,10 @@ export function startRefreshCountdown(seconds, onComplete) {
       if (refreshBtn) {
         refreshBtn.disabled = false;
         refreshBtn.classList.add('cursor-pointer');
-        refreshBtn.classList.remove('cursor-not-allowed');
+        refreshBtn.classList.remove('cursor-not-allowed', 'success');
+        if (buttonText) {
+          buttonText.textContent = 'Actualizar precios';
+        }
       }
       setRefreshButtonLoading(false);
       if (onComplete) {
@@ -835,9 +836,9 @@ export function toggleReferenceContent() {
     toggleBtn.setAttribute('aria-expanded', 'false');
   } else {
     collapsableContent.classList.remove('ui-hidden');
-    collapsableContent.classList.add('ui-visible');
+    collapsableContent.setAttribute('data-expanded', 'true');
     requestAnimationFrame(() => {
-      collapsableContent.setAttribute('data-expanded', 'true');
+      collapsableContent.classList.add('ui-visible');
     });
     toggleBtn.setAttribute('aria-expanded', 'true');
     const referencePrices = getCurrentReferencePrices();
